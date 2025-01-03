@@ -1,0 +1,188 @@
+/* Contenedor principal */
+.cliente-form-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+/* Título principal */
+.cliente-form-container h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Tabla de clientes */
+.tabla-clientes {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.tabla-clientes thead th {
+    background-color: #f4f4f4;
+    text-align: left;
+    padding: 10px;
+    font-weight: bold;
+    color: #555;
+}
+
+.tabla-clientes tbody td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    color: #333;
+}
+
+.tabla-clientes tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Botones de acción */
+.boton-accion {
+    margin: 0 5px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Botón editar */
+.boton-editar {
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.boton-editar:hover {
+    background-color: #0056b3;
+}
+
+/* Botón eliminar */
+.boton-eliminar {
+    background-color: #dc3545;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.boton-eliminar:hover {
+    background-color: #a71d2a;
+}
+
+/* Botón crear */
+.boton-crear {
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 16px;
+}
+
+.boton-crear:hover {
+    background-color: #218838;
+}
+
+/* Mensaje de carga */
+.cliente-form-container p {
+    font-size: 16px;
+    color: #555;
+}
+
+/* Estilos para los modales */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modalContent h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: #333;
+}
+
+.modalContent label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #555;
+}
+
+.modalContent input,
+.modalContent select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.modalContent input:focus,
+.modalContent select:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.modalContent .modalButtons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.modalContent button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.modalContent button:first-child {
+    background-color: #6c757d;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.modalContent button:first-child:hover {
+    background-color: #5a6268;
+}
+
+.modalContent button:last-child {
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.modalContent button:last-child:hover {
+    background-color: #0056b3;
+}
+
+/* Mensajes de error */
+.error {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: -10px;
+    margin-bottom: 15px;
+}

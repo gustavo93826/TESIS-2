@@ -1,0 +1,74 @@
+/* Fondo del modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Contenido del modal */
+.modalContent {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.modalContent h3 {
+    margin-bottom: 20px;
+}
+
+/* Ícono centrado */
+.modalIcon img {
+    width: 60px;
+    margin: 15px auto;
+    display: block;
+}
+
+/* Input de correo */
+.inputField {
+    width: 100%;
+    padding: 10px;
+    margin: 15px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* Botones del modal */
+.modalButtons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.cancelButton,
+.confirmButton {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.cancelButton {
+    background-color: #f44336;
+    color: white;
+}
+
+.confirmButton {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.cancelButton:hover,
+.confirmButton:hover {
+    opacity: 0.9;
+}

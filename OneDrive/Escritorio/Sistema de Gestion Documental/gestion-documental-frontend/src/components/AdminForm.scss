@@ -1,0 +1,81 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+
+
+
+*{
+    margin: 0;
+    padding: 0;
+}
+
+
+.body{
+    font-size: 'Rubik', sans-serif;
+}
+
+$light: #ffffff;
+$grey: #e7e9eb;
+
+.flex{
+    display: flex;
+}
+
+.navbar{
+    background-color: $light;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid $grey;
+}
+
+.sidebar{
+    width: 16rem;
+    height: calc(100vh - 52px);
+    border-right: 1px solid $grey;
+    ul{
+        list-style: none;
+        padding: 1rem 2rem;
+        li{
+            margin-bottom: 1.2rem;
+            a{
+                text-decoration: none;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                &.active{
+                    background-color: $grey;
+                }
+
+            }
+        }
+    }
+}
+
+
+.content {
+    flex: 1; /* Ocupa todo el espacio restante */
+    padding: 2rem;
+    background-color: $light;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+
+    th, td {
+        text-align: left;
+        padding: 1rem;
+        border-bottom: 1px solid $grey;
+    }
+
+    th {
+        background-color: $grey;
+        font-weight: bold;
+    }
+
+    td {
+        background-color: $light;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+    }
+}

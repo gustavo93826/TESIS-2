@@ -1,0 +1,258 @@
+/* Contenedor principal */
+.documentos-container {
+    max-width: 100%;
+    padding: 20px;
+    background-color: #004E6D;
+    font-family: Arial, sans-serif;
+    color: #333;
+}
+
+/* Botón de cerrar sesión */
+.btn-logout {
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+/* Encabezado */
+h1 {
+    color: #ccc!important;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+}
+
+h2 {
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Contenedor de botones */
+.botones-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Botones de acción */
+.btn-subir-archivo, .btn-crear-carpeta {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-subir-archivo:hover, .btn-crear-carpeta:hover {
+    background-color: #0056b3;
+}
+
+/* Barra de búsqueda */
+.search-bar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap:10px;
+    margin-bottom: 20px;
+    
+    
+
+}
+
+.search-bar {
+    width: 50%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.btn-filtrar {
+    padding: 10px 15px;
+    background-color: #4CAF50; /* Color verde */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.btn-filtrar:hover {
+    background-color: #45a049; /* Verde más oscuro al pasar el mouse */
+}
+
+/* Tabla de documentos */
+.tabla-documentos {
+    width: 75%;
+    margin: 20px auto ;
+    border-collapse: collapse;
+    background-color: white;
+    table-layout: fixed!important;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tabla-documentos-container {
+    width: 100%; /* Usar todo el ancho disponible */
+    overflow-x: auto; /* Scroll horizontal si es necesario */
+}
+
+.tabla-documentos td.scrollable {
+    
+    max-width: 150px; /* Ancho máximo para la columna */
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+    overflow-x: auto; /* Activa el scroll horizontal */
+    
+    -webkit-overflow-scrolling: touch; /* Suaviza el scroll en dispositivos móviles */
+    padding: 10px;
+}
+
+/* Encabezados para columna específica */
+.tabla-documentos th.scrollable {
+    max-width: 150px; /* Asegura que el encabezado también tenga límite */
+    white-space: nowrap; /* Evita saltos de línea en encabezados */
+}
+
+/* Personalización opcional del estilo del scroll */
+.tabla-documentos td.scrollable::-webkit-scrollbar {
+    height: 6px; /* Altura del scrollbar */
+}
+
+.tabla-documentos td.scrollable::-webkit-scrollbar-thumb {
+    background: #ccc; /* Color del scroll */
+    border-radius: 10px;
+}
+
+.tabla-documentos td.scrollable::-webkit-scrollbar-thumb:hover {
+    background: #999; /* Color al pasar el mouse */
+}
+
+
+
+.tabla-documentos th, .tabla-documentos td {
+    border: 1px solid black;
+    padding: 15px;
+    text-align: left;
+    font-size: 14px;
+}
+
+.tabla-documentos th {
+    padding: 10px;
+    background-color: #F4F4F4;
+    font-weight: bold;
+    text-align: left;
+}
+
+.tabla-documentos tr:nth-child(even) {
+    background-color: #F9F9F9;
+}
+
+.tabla-documentos tr:hover {
+    background-color: #EEF1F6;
+}
+
+.tabla-documentos td {
+    word-break: break-word;
+    vertical-align: middle;
+}
+
+/* Última fila redondeada */
+.tabla-documentos th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.tabla-documentos th:last-child {
+    border-top-right-radius: 10px;
+}
+
+.tabla-documentos tr:last-child td:first-child {
+    border-bottom-left-radius: 10px;
+}
+
+.tabla-documentos tr:last-child td:last-child {
+    border-bottom-right-radius: 10px;
+}
+
+/* Dropdown de acciones */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown button {
+    background-color: #f4f4f4;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.dropdown button:hover {
+    background-color: #ddd;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    color: #333;
+    text-align: left;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    min-width: 150px;
+    padding: 8px 0;
+    left: 100%; /* Posiciona a la derecha del botón */
+    top: -35px;
+}
+
+.dropdown-content button {
+    background: none;
+    border: none;
+    color: #333;
+    padding: 8px 16px;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+}
+
+.dropdown-content button:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+
+/* Pie de página */
+.footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #003B4D;
+    color: white;
+    font-size: 14px;
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+}

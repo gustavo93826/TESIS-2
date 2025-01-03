@@ -1,0 +1,145 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.login-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden; /* Para evitar problemas con la animación */
+    position: relative;
+}
+
+.login-left, .login-right {
+    transition: transform 0.5s ease-in-out;
+}
+
+.login-left {
+    background-color: #004d6b;
+    color: white;
+    padding: 50px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.logo {
+    max-width: 450px;
+    margin-bottom: 80px;
+    margin-top: -150px;
+    border: black 4px solid;
+    border-radius: 20px;
+}
+
+.login-left h1 {
+    margin-bottom: 20px;
+    font-size: 2.5rem;
+}
+
+.login-left p {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    max-width: 70%;
+}
+
+.login-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+    z-index: 2;
+}
+
+.login-right h2 {
+    margin-bottom: 20px;
+}
+
+.login-form {
+    width: 100%;
+    max-width: 300px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.btn-acceder {
+    background-color: #004d6b;
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-acceder:hover {
+    background-color: #003a52;
+}
+
+/* Estilo para el formulario de cambio de contraseña */
+.reset-password-form {
+    width: 100%;
+    max-width: 300px;
+    display: none; /* Oculto inicialmente */
+}
+
+.reset-password-form.visible {
+    display: block;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: -15px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Animación de deslizamiento */
+.slide-left {
+    transform: translateX(-100%);
+}
+
+.slide-right {
+    transform: translateX(100%);
+}
+
+
+
+.forgot-password {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.forgot-password a {
+    color: #004d6b;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
