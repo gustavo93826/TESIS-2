@@ -10,7 +10,6 @@ import json
 import secrets
 import string
 
-
 # Endpoint para listar usuarios
 def lista_usuarios(request):
     if request.method == "GET":
@@ -49,8 +48,6 @@ def enviar_correo_usuario(email, nombre, contrasena_aleatoria):
         print("Error al enviar el correo:", e)
         return False
 
-# Endpoint para crear usuario
-
 
 def generar_contraseña_temporal(longitud=16):
     
@@ -76,13 +73,16 @@ def crear_usuario(request):
 
             if not nombre or not email or not rol:
                 return JsonResponse({"error": "Todos los campos son obligatorios."}, status=400)
-
-            if email:
-                try:
-                    validate_email(email)
-                except ValidationError:
-                    return JsonResponse({"error": "El correo proporcionado no es válido."}, status=400)
             
+            try:
+                validate_email(email)
+            except ValidationError:
+                return JsonResponse({"error": "El correo proporcionado no es válido."}, status=400)
+
+            if Usuario.objects.filter(email=email).exists():
+                return JsonResponse({"error": "Ya existe un usuario registrado con este correo."}, status=400)
+
+                        
             contrasena_aleatoria = generar_contraseña_temporal()
             
             # Crear usuario en la base de datos
@@ -147,3 +147,10 @@ def Editar_usuario(request, usuario_id):
             return JsonResponse({"error": "El cuerpo de la solicitud debe estar en formato JSON."}, status=400)
 
     return JsonResponse({"error": "Método no permitido."}, status=405)
+
+def lista_usuarios_opcion(request):
+    if request.method == "GET":
+        # Filtrar usuarios con los roles específicos
+        roles_permitidos = [2, 3, 4]  # Abogado, Auxiliar Administrativo, Asistente
+        usuarios = Usuario.objects.filter(rol__in=roles_permitidos).values("id", "nombre", "email", "rol")
+        return JsonResponse(list(usuarios), safe=False)

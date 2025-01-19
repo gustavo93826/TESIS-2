@@ -20,13 +20,46 @@ $grey: #e7e9eb;
     display: flex;
 }
 
-.navbar{
-    background-color: $light;
-    padding: 1rem 2rem;
-    border-bottom: 1px solid $grey;
+.navbar {
+    background-color: #004E6D;
+    padding: 1rem 2rem !important;
+    border-radius: 8px !important;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border: 3px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%; /* Asegúrate de que la barra ocupe todo el ancho */
 }
 
+.navbar h1 {
+    font-size: 2rem;
+    color: white;
+    margin: 0;
+    overflow: hidden; /* Evita que el texto se salga */
+    text-overflow: ellipsis; /* Aplica puntos suspensivos si el texto es demasiado largo */
+    white-space: nowrap; /* Evita que el texto haga salto de línea */
+}
+
+.navbar button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.navbar button:hover {
+    background-color: darkred;
+}
+
+
+
 .sidebar{
+    
     width: 16rem;
     height: calc(100vh - 52px);
     border-right: 1px solid $grey;
@@ -49,9 +82,10 @@ $grey: #e7e9eb;
 }
 
 
+
 .content {
     flex: 1; /* Ocupa todo el espacio restante */
-    padding: 2rem;
+    padding: 1rem ;
     background-color: $light;
 }
 

@@ -2,17 +2,15 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from usuarios.models import Usuario
-from django.core.mail import send_mail, EmailMessage
+from django.core.mail import EmailMessage
 import uuid
 from datetime import datetime, timedelta
-from rest_framework.response import Response
 import pytz
-from django.utils import timezone
-
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from usuarios.models import Usuario
+from Permisos.models import PermisoGlobal
 
 @csrf_exempt
 def login(request):
@@ -29,6 +27,13 @@ def login(request):
                 user = Usuario.objects.get(email=email)
             except Usuario.DoesNotExist:
                 return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+            
+            try:
+                permiso = PermisoGlobal.objects.get(usuario=user)
+                if not permiso.activar:
+                    return JsonResponse({'error': 'Su usuario se encuentra desactivado, comuníquese con el administrador para activarlo.'}, status=403)
+            except PermisoGlobal.DoesNotExist:
+                return JsonResponse({'error': 'Permisos no configurados para este usuario'}, status=403)
 
             # Verificar si la contraseña ingresada es temporal
             if user.temp_password and user.temp_password == password and not user.password:
@@ -37,10 +42,36 @@ def login(request):
             # Verificar si la contraseña ingresada es la del campo password
             if user.password == password:
                 redirigir = '/admin' if user.rol == 1 else '/user'
+                
+                try:
+                    permisos_obj = PermisoGlobal.objects.get(usuario=user)
+                    permisos = {
+                        "subir_archivo": permisos_obj.subir_archivo,
+                        "crear_carpeta": permisos_obj.crear_carpeta,
+                        "editar": permisos_obj.editar,
+                        "mover": permisos_obj.mover,
+                        "eliminar": permisos_obj.eliminar,
+                        "ver": permisos_obj.ver,
+                        "descargar": permisos_obj.descargar,
+                    }
+                except PermisoGlobal.DoesNotExist:
+                    permisos = {
+                        "subir_archivo": False,
+                        "crear_carpeta": False,
+                        "editar": False,
+                        "mover": False,
+                        "eliminar": False,
+                        "ver": False,
+                        "descargar": False,
+                    }
+
+                
                 return JsonResponse({
                     'rol': user.rol,
                     'redirigir': redirigir,
-                    'nombre': user.nombre  # Incluye el nombre del usuario
+                    'id': user.id,
+                    'nombre': user.nombre,  # Incluye el nombre del usuario
+                    'permisos': permisos 
                 }, status=200)
 
             return JsonResponse({'error': 'Credenciales inválidas'}, status=401)
@@ -80,7 +111,7 @@ def Establecer_password(request):
             user.temp_password = None  # Eliminamos la contraseña temporal
             user.save()
 
-            return JsonResponse({'message': 'Contraseña actualizada correctamente', 'redirect': '/user'}, status=200)
+            return JsonResponse({'message': 'Contraseña establecida correctamente', 'redirect': '/user'}, status=200)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Formato de datos no válido'}, status=400)
         except Exception as e:
@@ -107,6 +138,7 @@ def Recuperar_password(request):
             try:
                 # Verificar si el correo existe en la base de datos
                 user = Usuario.objects.get(email=email)
+                
 
                 # Generar un token y su expiración
                 user.reset_token = uuid.uuid4()
@@ -130,7 +162,7 @@ def Recuperar_password(request):
                     <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en el Sistema de Gestión Documental PDGR.</p>
                     <p>Para cambiar tu contraseña, haz clic en el siguiente botón:</p>
                     <p>
-                    <a href="http://localhost:3000/Cambiar_password/?token={user.reset_token}"  
+                    <a href="http://localhost:3000/Cambiar_password/?token={user.reset_token}&email={user.email}"  
                 style="display: inline-block; 
                   padding: 10px 20px; 
                   font-size: 16px; 
@@ -161,7 +193,7 @@ def Recuperar_password(request):
                 }, status=200)
 
             except Usuario.DoesNotExist:
-                return JsonResponse({'error': 'El correo no está registrado'}, status=404)
+                return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Formato de datos no válido'}, status=400)
@@ -205,6 +237,8 @@ def Cambiar_password(request):
 
             # Actualizar la contraseña del usuario
             user.password = new_password
+            user.reset_token = None
+            user.reset_token_expiration = None
             user.save()
 
             return JsonResponse({'message': 'Contraseña actualizada correctamente'}, status=200)

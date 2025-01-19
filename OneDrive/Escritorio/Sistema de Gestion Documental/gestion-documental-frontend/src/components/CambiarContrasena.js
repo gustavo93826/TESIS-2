@@ -3,14 +3,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./CambiarContrasena.module.css";
 import logo from "./assets/PDGR.jpeg";
 import successIcon from "./assets/Check.jpg";
-import errorIcon from "./assets/Negate.jpg"; // Nueva imagen para enlace vencido
+import errorIcon from "./assets/Negate.jpg"; 
 
 const ChangePassword = () => {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
-    const [isExpired, setIsExpired] = useState(false); // Estado para enlace vencido
+    const [isExpired, setIsExpired] = useState(false); 
 
     const query = new URLSearchParams(useLocation().search);
     const email = query.get("email");
@@ -172,9 +172,7 @@ const ChangePassword = () => {
                     />
                     <h3>AVISO:</h3>
                     <p>
-                        La contraseña debe tener mínimo 8 caracteres y usar al
-                        menos uno de estos caracteres especiales: ! # $ % & * +
-                        - / : ; &lt; = &gt; ? @ _
+                        La contraseña debe tener mínimo 8 caracteres.
                     </p>
                 </div>
             </div>

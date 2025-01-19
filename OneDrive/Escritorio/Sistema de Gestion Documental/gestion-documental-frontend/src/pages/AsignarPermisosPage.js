@@ -1,8 +1,10 @@
+import React from 'react';
+import PermisosForm from '../components/PermisosForm';
+
 const AsignarPermisosPage = () => {
     return (
         <div>
-            <p>Gestion de Permsios</p>
-            {/* Aquí se asignan los permisos a los usuarios */}
+            <PermisosForm/>
         </div>
     );
 };

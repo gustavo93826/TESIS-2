@@ -7,6 +7,7 @@ import GestionUsuariosPage from './pages/GestionUsuariosPage';
 import GestionClientesPage from './pages/GestionClientesPage';
 import AsignarPermisosPage from './pages/AsignarPermisosPage';
 import CambiarContrasena from "./components/CambiarContrasena";
+import RegistrosPage from './pages/RegistrosPage';
 
 const App = () => {
     return (
@@ -21,6 +22,7 @@ const App = () => {
                             <Route path="gestion-usuarios" element={<GestionUsuariosPage />} />
                             <Route path="gestion-clientes" element={<GestionClientesPage />} />
                             <Route path="asignar-permisos" element={<AsignarPermisosPage />} />
+                            <Route path="registros" element={<RegistrosPage />} />
                             </Routes>
                     </AdminForm>
                 } />

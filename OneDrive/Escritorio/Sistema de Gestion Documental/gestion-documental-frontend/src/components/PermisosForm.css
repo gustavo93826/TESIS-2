@@ -1,0 +1,130 @@
+/* Contenedor principal */
+.permisos-form-container {
+    margin-bottom: 30px !important;
+    padding: 20px !important;
+    background-color: #f9f9f9!important;
+    border-radius: 8px!important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1)!important;
+    font-family: Arial, sans-serif !important;
+    max-width: 1200px!important;
+    margin: 0 auto!important;
+}
+
+/* Título principal */
+.permisos-form-container h1 {
+    font-size: 30px;
+    text-align: center;
+    text-decoration: underline;
+    color: #343a40 !important;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+/* Mensaje de carga */
+.mensaje-carga {
+    font-size: 16px;
+    color: #555;
+}
+
+/* Tabla de permisos */
+.tabla-permisos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tabla-permisos th, .tabla-permisos td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center!important;
+    
+}
+.tabla-permisos thead th{
+    background-color: #343a40;
+    text-align: left;
+    color: white;
+    padding: 15px;
+}
+
+.tabla-permisos tbody td {
+    padding: 15px;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+}
+
+
+
+.tabla-permisos tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.tabla-permisos tbody tr:hover {
+    background-color: #e9ecef;
+    transition: background-color 0.2s ease;
+}
+
+
+/* Estilo para los interruptores */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 10px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(14px);
+}
+
+/* Botón de acceso */
+.btn-acceso {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-acceso:hover {
+    background-color: #0056b3;
+}

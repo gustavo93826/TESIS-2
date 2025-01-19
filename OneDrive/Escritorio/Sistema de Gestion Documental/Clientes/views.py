@@ -20,14 +20,8 @@ def eliminar_cliente(request, cliente_id):
     if request.method == "DELETE":
         cliente = get_object_or_404(Cliente, id=cliente_id)
         cliente.delete()
-        return JsonResponse({"mensaje": "Usuario eliminado correctamente."})
+        return JsonResponse({"mensaje": "Cliente eliminado correctamente."})
     
-    
-    
-    
-    
-
-
 
 @csrf_exempt
 def agregar_cliente(request):

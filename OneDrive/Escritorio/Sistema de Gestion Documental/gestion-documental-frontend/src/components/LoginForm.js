@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './LoginForm.css'; // Archivo CSS para los estilos
+import './LoginForm.css'; 
 import RecuperarContrasena from './RecuperarContrasena';
-import logo from './assets/PDGR.jpeg'; // Importamos la imagen del logo
+import logo from './assets/PDGR.jpeg'; 
 
 
 const LoginForm = () => {
@@ -28,7 +28,9 @@ const LoginForm = () => {
                 if (data.status === 'reset_required') {
                     setIsTempPassword(true); // Cambia a modo de cambio de contraseña
                 } else {
-                    sessionStorage.setItem('userName', data.nombre);// Guarda el nombre del usuario en localStorage
+                    sessionStorage.setItem('userId', data.id);
+                    sessionStorage.setItem('userName', data.nombre);
+                    sessionStorage.setItem('userPermisos', JSON.stringify(data.permisos));
                     navigate(data.redirigir); // Redirige según el rol
                 }
             } else {

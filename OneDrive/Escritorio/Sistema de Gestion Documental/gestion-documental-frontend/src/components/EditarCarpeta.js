@@ -8,7 +8,7 @@ const EditarCarpeta = ({ userName, clientes, carpeta, onClose, onEditSuccess }) 
     useEffect(() => {
         if (carpeta) {
             setNombre(carpeta.nombre);
-            setClienteSeleccionado(carpeta.cliente?.id || '');
+            setClienteSeleccionado(carpeta.cliente || '');
         }
     }, [carpeta]);
 

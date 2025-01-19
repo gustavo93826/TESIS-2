@@ -1,24 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './SubirArchivo.css';
 
-const BusquedaAvanzada = ({ clientes, categorias, usuarios, onClose, onBuscar }) => {
+const BusquedaAvanzada = ({ clientes, usuarios, onClose, onBuscar }) => {
     const [clienteSeleccionado, setClienteSeleccionado] = useState('');
     const [categoria, setCategoria] = useState('');
     const [creadoPorSeleccionado, setCreadoPorSeleccionado] = useState('');
     const [fechaCreacion, setFechaCreacion] = useState('');
+
+    // Cargar filtros guardados en localStorage
+    useEffect(() => {
+        const filtrosGuardados = JSON.parse(localStorage.getItem('filtrosBusqueda')) || {};
+        setClienteSeleccionado(filtrosGuardados.cliente || '');
+        setCategoria(filtrosGuardados.categoria || '');
+        setCreadoPorSeleccionado(filtrosGuardados.creadoPor || '');
+        setFechaCreacion(filtrosGuardados.fechaCreacion || '');
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
         const filtros = {
             cliente: clienteSeleccionado,
-            categoria: categoria,
+            categoria,
             creadoPor: creadoPorSeleccionado,
             fechaCreacion,
         };
 
+        // Guardar filtros en localStorage
+        localStorage.setItem('filtrosBusqueda', JSON.stringify(filtros));
+
         onBuscar(filtros); // Enviar filtros al backend o a otro componente
         onClose(); // Cerrar el modal
+    };
+
+    const handleLimpiar = () => {
+        setClienteSeleccionado('');
+        setCategoria('');
+        setCreadoPorSeleccionado('');
+        setFechaCreacion('');
+        localStorage.removeItem('filtrosBusqueda'); // Eliminar filtros de localStorage
+        onBuscar({});
     };
 
     return (
@@ -41,12 +62,12 @@ const BusquedaAvanzada = ({ clientes, categorias, usuarios, onClose, onBuscar })
                         </select>
                     </div>
                     <div className="form-group">
-                    <label>Categoría</label>
+                        <label>Categoría</label>
                         <select
                             value={categoria}
                             onChange={(e) => setCategoria(e.target.value)}
                         >
-                            <option value="">Selecciona un cliente</option>
+                            <option value="">Selecciona una categoría</option>
                             <option value="otro">Otro</option>
                             <option value="acta">Acta</option>
                             <option value="acuerdo">Acuerdo</option>
@@ -67,7 +88,6 @@ const BusquedaAvanzada = ({ clientes, categorias, usuarios, onClose, onBuscar })
                             <option value="resolucion">Resolución</option>
                             <option value="solicitud">Solicitud</option>
                         </select>
-                    
                     </div>
                     <div className="form-group">
                         <label>Creado por</label>
@@ -92,11 +112,14 @@ const BusquedaAvanzada = ({ clientes, categorias, usuarios, onClose, onBuscar })
                         />
                     </div>
                     <div className="modal-actions">
-                        <button type="submit" className="btn-submit">
-                            Buscar
-                        </button>
                         <button type="button" className="btn-cancel" onClick={onClose}>
                             Cancelar
+                        </button>
+                        <button type="button" className="btn-clear" onClick={handleLimpiar}>
+                            Limpiar
+                        </button>
+                        <button type="submit" className="btn-submit">
+                            Buscar
                         </button>
                     </div>
                 </form>

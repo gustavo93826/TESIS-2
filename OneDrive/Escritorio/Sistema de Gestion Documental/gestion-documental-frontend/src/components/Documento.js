@@ -7,6 +7,7 @@ import VistaPreviaArchivo from './VistaPreviaArchivo';
 import CrearCarpeta from './CrearCarpeta';
 import EditarArchivo from './EditarArchivo';
 import EditarCarpeta from './EditarCarpeta';
+import BusquedaAvanzada from './BusquedaAvanzada';
 import { ExcelIcon, ImageIcon, PdfIcon, PowerPointIcon, WordIcon } from './Icono';
 
 
@@ -14,6 +15,7 @@ const Documentos = () => {
     const navigate = useNavigate();
     const userName = sessionStorage.getItem('userName');
     const [clientes, setClientes] = useState([]);
+    const [usuarios, setUsuarios] = useState([]);
     const [documentos, setDocumentos] = useState([]);
     const [rutaActual, setRutaActual] = useState('documentos/');
     const [ubicacion, setUbicacion] = useState(null);
@@ -30,21 +32,31 @@ const [carpetaSeleccionada, setCarpetaSeleccionada] = useState(null);
 const [documentoSeleccionado, setDocumentoSeleccionado] = useState(null);
 const [searchTerm, setSearchTerm] = useState("");
 const [filteredDocumentos, setFilteredDocumentos] = useState([]);
+const [mostrarBusquedaAvanzada, setMostrarBusquedaAvanzada] = useState(false); 
 
 
-    const fetchDocumentos = async () => {
+    const fetchDocumentos = async (filtrosAvanzados = {}) => {
         try {
         const baseUrl = `http://localhost:8000/api/Documentos/lista/?ruta=${rutaActual}`;
         const searchParam = searchTerm.trim() !== "" ? `&search=${encodeURIComponent(searchTerm)}` : "";
-        const responseDocs = await fetch(`${baseUrl}${searchParam}`);
+        const filtroParams = Object.entries(filtrosAvanzados)
+            .filter(([_, value]) => value) // Solo incluir filtros con valores
+            .map(([key, value]) => `&${key}=${encodeURIComponent(value)}`)
+            .join("");
+            const responseDocs = await fetch(`${baseUrl}${searchParam}${filtroParams}`);
         const responseCarpetas = await fetch(`http://localhost:8000/api/Carpetas/lista/?ruta=${rutaActual}${searchParam}`);
             const documentos = await responseDocs.json();
             const carpetas = await responseCarpetas.json();
             const carpetasAdaptadas = carpetas
             .filter(carpeta => {
+                if (Object.keys(filtrosAvanzados).length > 0) {
+                    const camposDocumentos = ['categoria', 'fechaCreacion'];
+            const aplicaSoloDocumentos = camposDocumentos.some(campo => filtrosAvanzados[campo]);
+            return !aplicaSoloDocumentos;
+                    
+                }
                 if (searchTerm.trim() !== "") {
-                    // Cuando hay búsqueda, no filtrar por rutas hijas
-                    return true;
+                    return true; 
                 }
                 // Solo mostrar carpetas hijas inmediatas si no hay búsqueda
                 const carpetaRelativa = carpeta.url.replace(rutaActual, ''); 
@@ -57,7 +69,6 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
                 creado_por: carpeta.creado_por,
                 categoria: "--",
                 cliente: carpeta.cliente,
-                privacidad: "--",
                 fecha_creacion: carpeta.fecha_creacion,
                 ultima_modificacion: carpeta.ultima_modificacion,
                 tipo: "carpeta", // Identificador para diferenciar de documentos
@@ -66,9 +77,10 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
                 ...doc,
                 tipo: "documento", // Identificador para diferenciar de carpetas
             }));
-            const elementosCombinados = [...carpetasAdaptadas, ...documentosAdaptados]
-            .filter(elemento => elemento.url !== rutaActual)
-            .sort((a, b) => new Date(a.fecha_creacion) - new Date(b.fecha_creacion));
+            const elementosCombinados = [...documentosAdaptados, ...carpetasAdaptadas]
+    .filter(elemento => elemento.tipo === "documento" || !filtrosAvanzados.categoria) // Excluir carpetas si se filtra por categoría
+    .filter(elemento => elemento.url !== rutaActual)
+    .sort((a, b) => new Date(a.fecha_creacion) - new Date(b.fecha_creacion));
             
             setDocumentos(elementosCombinados);
         } catch (error) {
@@ -89,12 +101,29 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
             }
         
         };
+
+        const fetchUsuarios = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/api/usuarios/lista/');
+                const data = await response.json();
+                setUsuarios(data);
+            } catch (error) {
+                console.error('Error al obtener usuarios:', error);
+            }
+        
+        };
+
+        
         
 
         fetchClientes();
+        fetchUsuarios();
         fetchDocumentos();
         
     }, [rutaActual, searchTerm]);
+
+
+
 
     const handleVolver = () => {
         if (!rutaActual || rutaActual === 'documentos/') {
@@ -114,8 +143,86 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
     };
     
     
+    const verificarPermiso = async (permiso) => {
+        try {
+            const userId = sessionStorage.getItem('userId');
+            const response = await fetch(`http://localhost:8000/api/Permisos/actuales/?id=${userId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            });
+    
+            if (!response.ok) {
+                throw new Error('Error al verificar permisos');
+            }
+    
+            const permisos = await response.json();
+            return permisos[permiso] || false;
+        } catch (error) {
+            console.error("Error al verificar permisos:", error);
+            alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+            return false;
+        }
+    };
+    const clientesAcceso= async(userId) => {
+        try{
+            const response = await fetch(`http://localhost:8000/api/Permisos/cliente-archivos-ids/?user_id=${userId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) {
+            throw new Error('Error al verificar permisos');
+        }
+        const Acceso=await response.json();
+        return Acceso.cliente_archivos_ids;
 
-    const handleAccederCarpeta = (carpeta) => {
+    } catch (error) {
+        console.error("Error al verificar permisos:", error);
+        alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+        return false;
+    }
+};
+
+const obtenerClienteAsociadoDocumento = async (documentoId) => {
+    try {
+        const response = await fetch(`http://localhost:8000/api/documentos/${documentoId}/cliente/`);
+        if (!response.ok) {
+            throw new Error("Error al obtener el cliente asociado al documento.");
+        }
+        const { cliente_id: clienteId } = await response.json();
+        return clienteId; // Devuelve el ID del cliente
+    } catch (error) {
+        console.error("Error al obtener cliente asociado:", error);
+        return null; // Devuelve null en caso de error
+    }
+};
+
+const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
+    try {
+        const response = await fetch(`http://localhost:8000/api/carpetas/${carpetaId}/cliente/`);
+        if (!response.ok) {
+            throw new Error("Error al obtener el cliente asociado a la carpeta.");
+        }
+        const { cliente_id: clienteId } = await response.json();
+        return clienteId; // Devuelve el ID del cliente
+    } catch (error) {
+        console.error("Error al obtener cliente asociado:", error);
+        return null; // Devuelve null en caso de error
+    }
+};
+
+    const handleAccederCarpeta =async (carpeta) => {
+        const clienteId = await obtenerClienteAsociadoCarpeta(carpeta.id);
+        const userId = sessionStorage.getItem("userId");
+        const clientesAsociados = await clientesAcceso(userId);
+        if (!clientesAsociados) {
+            alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+            return;
+        }
+
+        if (clientesAsociados.length > 0 && !clientesAsociados.includes(clienteId)) {
+            alert("No tienes permisos para acceder a esta carpeta.");
+            return;
+        }
         if (carpeta && carpeta.url) {
             setRutaActual(carpeta.url);
             setUbicacion(carpeta.id);
@@ -125,37 +232,101 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
     };
 
     const eliminarDocumento = async (documentoId) => {
-        if (window.confirm("¿Estás seguro de eliminar este documento?")) {
-            try {
-                await fetch(`http://localhost:8000/api/Documentos/${documentoId}/eliminar/`, {
-                    method: "DELETE",
-                });
-                setDocumentos(documentos.filter((documento) => documento.id !== documentoId));
-            } catch (error) {
-                console.error("Error al eliminar documento:", error);
+        try {
+            const clienteId = await obtenerClienteAsociadoDocumento(documentoId);
+            
+            const tienePermiso = await verificarPermiso("eliminar");
+            if (!tienePermiso) {
+                alert("No tienes permisos para eliminar documentos.");
+                return;
             }
+    
+            const userId = sessionStorage.getItem("userId");
+            const clientesAsociados = await clientesAcceso(userId);
+    
+            if (!clientesAsociados) {
+                alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+                return;
+            }
+    
+            // Verificar si el cliente está asociado
+            if (clientesAsociados.length > 0 && !clientesAsociados.includes(clienteId)) {
+                alert("No tienes permisos para eliminar este archivo.");
+                return;
+            }
+    
+            // Confirmar eliminación
+            if (
+                window.confirm(`¿Estás seguro de eliminar este documento?`)
+            ) {
+                const userName = sessionStorage.getItem("userName");
+                await fetch(
+                    `http://localhost:8000/api/Documentos/${documentoId}/eliminar/?modificado_por=${encodeURIComponent(userName)}`,
+                    { method: "DELETE" }
+                );
+                setDocumentos((prevDocumentos) => prevDocumentos.filter((doc) => doc.id !== documentoId));
+                alert("Documento eliminado correctamente.");
+            }
+        } catch (error) {
+            console.error("Error al eliminar documento:", error);
+            alert("Hubo un problema al eliminar el documento. Por favor, intenta nuevamente.");
         }
     };
+    
+    
 
     const eliminarCarpeta = async (carpetaId) => {
-        if (window.confirm(`¿Estás seguro de eliminar la carpeta con ID ${carpetaId}?`)) {
-            try {
-                const response = await fetch(`http://localhost:8000/api/Carpetas/${carpetaId}/eliminar/`, {
-                    method: "DELETE", 
-                });
+        try {
+            const clienteId = await obtenerClienteAsociadoCarpeta(carpetaId);
+            const tienePermiso = await verificarPermiso("eliminar");
+            if (!tienePermiso) {
+                alert("No tienes permisos para eliminar carpetas.");
+                return;
+            }
+    
+            const userId = sessionStorage.getItem("userId");
+            const clientesAsociados = await clientesAcceso(userId);
+    
+    
+            if (!clientesAsociados) {
+                alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+                return;
+            }
+    
+            // Verificar si el cliente está asociado
+            if (clientesAsociados.length > 0 && !clientesAsociados.includes(clienteId)) {
+                console.log("El cliente de la carpeta no está en la lista de clientes asociados.");
+                alert("No tienes permisos para eliminar esta carpeta.");
+                return;
+            }
+    
+            // Confirmar eliminación
+            if (
+                window.confirm(
+                    `¿Estás seguro de eliminar esta carpeta? `)
+            ) {
+                const userName = sessionStorage.getItem("userName");
+                const response = await fetch(
+                    `http://localhost:8000/api/Carpetas/${carpetaId}/eliminar/?modificado_por=${encodeURIComponent(userName)}`,
+                    { method: "DELETE" }
+                );
     
                 if (!response.ok) {
                     throw new Error("No se pudo eliminar la carpeta.");
                 }
     
-                // Actualiza el estado local para reflejar el cambio
-                setDocumentos(documentos.filter((elemento) => !(elemento.tipo === "carpeta" && elemento.id === carpetaId)));
-            } catch (error) {
-                console.error("Error al eliminar carpeta:", error);
-                alert("Ocurrió un error al intentar eliminar la carpeta.");
+                // Actualizar el estado para reflejar los cambios
+                setDocumentos((prevDocumentos) =>
+                    prevDocumentos.filter((elemento) => !(elemento.tipo === "carpeta" && elemento.id === carpetaId))
+                );
+                alert("Carpeta eliminada correctamente.");
             }
+        } catch (error) {
+            console.error("Error al eliminar carpeta:", error);
+            alert("Hubo un problema al eliminar la carpeta. Por favor, intenta nuevamente.");
         }
     };
+    
     
 
     const handleSearch = (term) => {
@@ -201,7 +372,25 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
         }
     };
     
-    const handleAction = (action, docId) => {
+    const handleAction = async (action, docId) => {
+
+        const tienePermiso = await verificarPermiso('descargar');
+    if (!tienePermiso) {
+        alert("No tienes permisos para descargar archivos.");
+        return;
+    }
+    const clienteId = await obtenerClienteAsociadoDocumento(docId);
+        const userId = sessionStorage.getItem("userId");
+        const clientesAsociados = await clientesAcceso(userId);
+        if (!clientesAsociados) {
+            alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+            return;
+        }
+
+        if (clientesAsociados.length > 0 && !clientesAsociados.includes(clienteId)) {
+            alert("No tienes permisos para descargar este archivo.");
+            return;
+        }
         const documento = documentos.find(doc => doc.id === docId);
         if (!documento) {
             console.error("Documento no encontrado");
@@ -224,17 +413,25 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
 
     
     
-
-    const handleFileSelection = () => {
-        const inputElement = document.createElement('input');
-        inputElement.type = 'file';
-        inputElement.onchange = (event) => {
-            const file = event.target.files[0];
-            setArchivoSeleccionado(file);
-            setMostrarModal(true);
-        };
-        inputElement.click();
+    const handleFileSelection = async () => {
+        const tienePermiso = await verificarPermiso('subir_archivo');
+    if (!tienePermiso) {
+        alert("No tienes permisos para subir archivos.");
+        return;
+    }
+    
+            // Crear el input para seleccionar el archivo
+            const inputElement = document.createElement('input');
+            inputElement.type = 'file';
+            inputElement.onchange = (event) => {
+                const file = event.target.files[0];
+                setArchivoSeleccionado(file);
+                setMostrarModal(true);
+            };
+            inputElement.click();
+        
     };
+    
 
     const handleComentariosClick = async (documentoId) => {
         try {
@@ -254,7 +451,23 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
 
     
 
-    const handleVerArchivo = (doc) => {
+    const handleVerArchivo = async (doc) => {
+        const tienePermiso = await verificarPermiso('ver');
+    if (!tienePermiso) {
+        alert("No tienes permisos para ver archivos.");
+        return;
+    }
+    const clienteId = await obtenerClienteAsociadoDocumento(doc.id);
+    const userId = sessionStorage.getItem("userId");
+    const clientesAsociados = await clientesAcceso(userId)
+    if (!clientesAsociados) {
+        alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+        return;
+    }
+    if (clientesAsociados.length > 0 && !clientesAsociados.includes(clienteId)) {
+        alert("No tienes permisos para ver este archivo.");
+        return;
+    }
         const extensionesPermitidas = ["docx", "pptx", "pdf", "xlsx", "txt", "png", "jpg", "jpeg"];
         const extension = doc.archivo.split(".").pop().toLowerCase();
         
@@ -268,16 +481,74 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
         }
     };
 
-    const handleEditarClick = (documento) => {
+    const handleEditarClick = async (documento) => {
+        const tienePermiso = await verificarPermiso('editar');
+    if (!tienePermiso) {
+        alert("No tienes permisos para editar archivos.");
+        return;
+    }
+    const clienteId = await obtenerClienteAsociadoDocumento(documento.id);
+    const userId = sessionStorage.getItem("userId");
+    const clientesAsociados = await clientesAcceso(userId);
+
+    if (!clientesAsociados) {
+        alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+        return;
+    }
+
+    if (clientesAsociados.length > 0 && !clientesAsociados.includes(clienteId)) {
+        console.log("El cliente del documento no está en la lista de clientes asociados.");
+        alert("No tienes permisos para editar este archivo.");
+        return;
+    }
+
         setDocumentoSeleccionado(documento);
         setMostrarEditarModal(true);
     };
 
-    const handleEditarCarpeta = (carpeta) => {
+    const handleEditarCarpeta = async (carpeta) => {
+        const tienePermiso = await verificarPermiso('editar');
+    if (!tienePermiso) {
+        alert("No tienes permisos para editar carpetas.");
+        return;
+    }
+    const clienteId = await obtenerClienteAsociadoCarpeta(carpeta.id);
+    const userId = sessionStorage.getItem("userId");
+    const clientesAsociados = await clientesAcceso(userId);
+
+    if (!clientesAsociados) {
+        alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+        return;
+    }
+
+    if (clientesAsociados.length > 0 && !clientesAsociados.includes(clienteId)) {
+        console.log("El cliente del documento no está en la lista de clientes asociados.");
+        alert("No tienes permisos para editar esta carpeta.");
+        return;
+    }
         setCarpetaSeleccionada(carpeta);
         setMostrarEditarModalCarpeta(true); 
     };
 
+    const handleFiltrar = () => {
+        setMostrarBusquedaAvanzada(true); // Mostrar modal de búsqueda avanzada
+    };
+
+    const handleCerrarBusquedaAvanzada = () => {
+        setMostrarBusquedaAvanzada(false); // Cerrar modal de búsqueda avanzada
+    };
+
+    const handleFiltrosAvanzados = (filtros) => {
+        fetchDocumentos(filtros);
+    };
+    
+    const handleCrearCarpeta = async () => {
+        const tienePermiso = await verificarPermiso('crear_carpeta');
+        if (!tienePermiso) {
+            alert("No tienes permisos para crear carpetas.");
+            return;
+        } setMostrarCrearCarpeta(true);
+    };
     
         const renderAccion = (doc) => {
         if (doc.tipo === "carpeta") {
@@ -309,8 +580,9 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
 
     return (
         <div className="documentos-container">
-            <h1>Bienvenido {userName}, aquí podrás gestionar Documentos</h1>
-            <h2>{rutaActual}</h2>
+            <h1>Bienvenido al sistema de gestion de documentos PDGR!!!</h1>
+            <p>Hola {userName}, aqui podra subir sus archivos y gestionarlos como le plazaca.</p>
+<p>Nota: Si no puede realizar una accion en especifico, probablemente sea por falta de permisos, por favor comuniquese con el administrador.</p>
             <div className='botones-container'>
                 <button onClick={handleLogout} className="btn-logout">
                     Cerrar Sesión
@@ -319,7 +591,7 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
                 <button onClick={handleFileSelection} className="btn-subir-archivo">
                     Subir Archivo
                 </button>
-                <button onClick={() => setMostrarCrearCarpeta(true)} className='btn-crear-carpeta'>
+                <button onClick={handleCrearCarpeta} className='btn-crear-carpeta'>
                     Crear Carpeta
                 </button>
 
@@ -339,7 +611,14 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
         onChange={(e) => setSearchTerm(e.target.value)}
         className="search-bar"
     />
+    <button onClick={handleFiltrar} className="btn-filtrar">Filtrar</button>
 </div>
+{mostrarBusquedaAvanzada && (
+                <BusquedaAvanzada
+                    clientes={clientes}
+                    usuarios={usuarios}
+                    onClose={handleCerrarBusquedaAvanzada} 
+                    onBuscar={handleFiltrosAvanzados}/>)}
 
             {mostrarModal && (
                 <SubirArchivo
@@ -360,9 +639,8 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
                             <th>Acción</th>
                             <th class="scrollable">Nombre</th>
                             <th class="scrollable">Subido Por</th>
-                            <th>Categoría</th>
+                            <th class="scrollable">Categoría</th>
                             <th class="scrollable">Cliente</th>
-                            <th>Privacidad</th>
                             <th>Fecha de Creación</th>
                             <th>Última Modificación</th>
                             <th>Comentarios</th>
@@ -378,9 +656,8 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
                                     </td>
                                     
                                     <td className="scrollable">{doc.creado_por}</td>
-                                    <td>{doc.categoria}</td>
+                                    <td class="scrollable">{doc.categoria}</td>
                                     <td className="scrollable">{doc.cliente}</td>
-                                    <td>{doc.privacidad}</td>
                                     <td>{new Date(doc.fecha_creacion).toLocaleString()}</td>
                                     <td>{new Date(doc.ultima_modificacion).toLocaleString()}</td>
                                     <td>
@@ -392,7 +669,7 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="9">No hay documentos disponibles</td>
+                                <td colSpan="8">No hay documentos disponibles</td>
                             </tr>
                         )}
                     </tbody>

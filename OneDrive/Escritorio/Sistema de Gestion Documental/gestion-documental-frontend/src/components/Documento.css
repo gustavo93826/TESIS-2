@@ -31,8 +31,9 @@ h1 {
     margin: 10px 0;
 }
 
-h2 {
-    font-size: 18px;
+p {
+    color: #ccc !important;
+    font-size: 14px;
     text-align: center;
     margin-bottom: 20px;
 }
@@ -111,7 +112,8 @@ h2 {
 }
 
 .tabla-documentos-container {
-    width: 100%; /* Usar todo el ancho disponible */
+    width: 100% !important; /* Usar todo el ancho disponible */
+    min-width: 800px; 
     overflow-x: auto; /* Scroll horizontal si es necesario */
 }
 
@@ -149,9 +151,10 @@ h2 {
 
 .tabla-documentos th, .tabla-documentos td {
     border: 1px solid black;
-    padding: 15px;
-    text-align: left;
-    font-size: 14px;
+    padding: 20px;
+    
+    font-size: 16px;
+    
 }
 
 .tabla-documentos th {
@@ -201,10 +204,13 @@ h2 {
     background-color: #f4f4f4;
     color: #333;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 4px;
     padding: 5px 10px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
+    max-width: 80px;
+    overflow: hidden; /* Ocultar texto si es demasiado largo */
+    white-space: nowrap; /* Evitar que el texto salte de línea */
 }
 
 .dropdown button:hover {

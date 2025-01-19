@@ -11,14 +11,14 @@ const EditarArchivo = ({ userName, clientes, documento, onClose, onEditSuccess }
             const nombreSinExtension = documento.nombre.split('.').slice(0, -1).join('.'); // Eliminar la extensión
             setNombre(nombreSinExtension);
             setCategoria(documento.categoria || 'otro');
-            setClienteSeleccionado(documento.cliente?.id || '');
+            setClienteSeleccionado(documento.cliente || '');
         }
     }, [documento]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!clienteSeleccionado || clienteSeleccionado === '') {
+        if (!clienteSeleccionado) {
             alert('Por favor selecciona un cliente.');
             return;
         }
@@ -49,7 +49,6 @@ const EditarArchivo = ({ userName, clientes, documento, onClose, onEditSuccess }
             }
         } catch (error) {
             console.error('Error al actualizar el documento:', error);
-            
             alert(`Error al actualizar el documento: ${error.message}`);
         }
     };

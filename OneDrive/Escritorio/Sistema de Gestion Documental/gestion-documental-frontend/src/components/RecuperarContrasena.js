@@ -21,11 +21,11 @@ const RecuperarContrasena = ({ onClose }) => {
 
             const data = await response.json();
             if (response.ok) {
-                alert(data.message);  // Mensaje de éxito
+                alert(data.message);  
             } else {
-                alert(data.error);  // Mostrar error si falla
+                alert(data.error);  
             }
-            onClose();  // Cerrar el modal después de la solicitud
+            onClose();  
         } catch (error) {
             console.error("Error al enviar el correo de recuperación:", error);
             alert("Hubo un error al intentar recuperar la contraseña.");

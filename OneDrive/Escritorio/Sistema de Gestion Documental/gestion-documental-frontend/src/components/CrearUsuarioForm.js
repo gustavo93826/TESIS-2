@@ -32,6 +32,7 @@ const CrearUsuarioForm = ({ onClose, onUsuarioCreado }) => {
 
             if (respuesta.ok) {
                 const nuevoUsuario = await respuesta.json();
+                alert('Se ha creado el nuevo usuario con éxito y se ha enviado la contraseña temporal al correo.');
                 onUsuarioCreado(nuevoUsuario); // Notificar al componente principal
                 onClose(); // Cerrar el formulario
             } else {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CrearUsuarioForm from "./CrearUsuarioForm";
 import EditarUsuarioForm from "./EditarUsuarioForm"; 
-import  "./UsuarioForm.css";
+import "./UsuarioForm.css";
 
 const UsuarioForm = () => {
     const [usuarios, setUsuarios] = useState([]);
@@ -81,7 +81,7 @@ const UsuarioForm = () => {
     };
 
     return (
-        <div>
+        <div className="Usuario">
             <h1>Gestión de Usuarios</h1>
             <button onClick={() => setMostrarFormularioCrear(true)}>Crear Usuario</button>
             {cargando ? (
