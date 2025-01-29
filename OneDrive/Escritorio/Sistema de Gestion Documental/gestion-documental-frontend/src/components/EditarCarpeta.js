@@ -4,16 +4,41 @@ import './EditarCarpeta.css';
 const EditarCarpeta = ({ userName, clientes, carpeta, onClose, onEditSuccess }) => {
     const [nombre, setNombre] = useState('');
     const [clienteSeleccionado, setClienteSeleccionado] = useState('');
+    const [mensajeError, setMensajeError] = useState('');
 
     useEffect(() => {
         if (carpeta) {
             setNombre(carpeta.nombre);
-            setClienteSeleccionado(carpeta.cliente || '');
+            setClienteSeleccionado(carpeta.cliente?.id || '');
         }
     }, [carpeta]);
+    
+    const clientesAcceso = async (userId) => {
+        try {
+            const response = await fetch(
+                `http://localhost:8000/api/Permisos/cliente-archivos-ids/?user_id=${userId}`,
+                {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            );
+            if (!response.ok) {
+                throw new Error('Error al verificar permisos');
+            }
+            const Acceso = await response.json();
+            return Acceso.cliente_archivos_ids;
+        } catch (error) {
+            console.error('Error al verificar permisos:', error);
+            alert('Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.');
+            return [];
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const userId = sessionStorage.getItem('userId');
+        const clientesAsociados = await clientesAcceso(userId);
 
         const nuevoNombre = nombre.trim();
         if (!nuevoNombre) {
@@ -25,6 +50,13 @@ const EditarCarpeta = ({ userName, clientes, carpeta, onClose, onEditSuccess }) 
             alert('Por favor selecciona un cliente.');
             return;
         }
+
+        if (clientesAsociados.length > 0 && !clientesAsociados.includes(parseInt(clienteSeleccionado))) {
+            setMensajeError('No puedes elegir este cliente.');
+            return;
+        }
+
+        setMensajeError('');
 
         try {
             const response = await fetch(`http://localhost:8000/api/Carpetas/${carpeta.id}/editar/`, {
@@ -83,14 +115,16 @@ const EditarCarpeta = ({ userName, clientes, carpeta, onClose, onEditSuccess }) 
                                 </option>
                             ))}
                         </select>
+                        {mensajeError && <p className="error-message">{mensajeError}</p>}
                     </div>
                     <div className="modal-actions">
+                    <button type="button" className="btn-cancel" onClick={onClose}>
+                            Cancelar
+                        </button>
                         <button type="submit" className="btn-submit">
                             Guardar Cambios
                         </button>
-                        <button type="button" className="btn-cancel" onClick={onClose}>
-                            Cancelar
-                        </button>
+                        
                     </div>
                 </form>
             </div>

@@ -1,0 +1,74 @@
+/* admin.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+  }
+  
+  #admin-container {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .title {
+    font-size: 2.5em;
+    color: #333 !important;
+    margin-bottom: 10px;
+  }
+  
+  .subtitle {
+    font-size: 1.2em;
+    color: #555 !important;
+    margin-bottom: 20px;
+  }
+  
+  .feature-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .feature-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 250px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .feature-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 15px;
+  }
+  
+  .feature-text {
+    font-size: 1em;
+    color: #333 !important;
+    margin: 0;
+  }
+  
+  @media (max-width: 768px) {
+    .feature-card {
+      width: 200px;
+    }
+  
+    .title {
+      font-size: 2em;
+    }
+  
+    .subtitle {
+      font-size: 1em;
+    }
+  }
+  

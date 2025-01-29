@@ -11,7 +11,7 @@ import json
 
 def lista_clientes(request):
     if request.method == "GET":
-        clientes = Cliente.objects.all().values("id", "nombre", "correo", "telefono", "direccion")
+        clientes = Cliente.objects.exclude(id=100).values("id", "nombre", "correo", "telefono", "direccion")
         return JsonResponse(list(clientes), safe=False)
 
 
@@ -116,5 +116,5 @@ def Editar_cliente(request, cliente_id):
 
 @require_GET
 def lista_opciones(request):
-    clientes = Cliente.objects.values('id', 'nombre')  # Selecciona los campos necesarios
+    clientes = Cliente.objects.exclude(id=100).values('id', 'nombre')  # Selecciona los campos necesarios
     return JsonResponse(list(clientes), safe=False)

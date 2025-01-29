@@ -22,7 +22,7 @@ const Documentos = () => {
     const [mostrarModal, setMostrarModal] = useState(false);
     const [mostrarCrearCarpeta, setMostrarCrearCarpeta] = useState(false);
     const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
-    const [comentariosModal, setComentariosModal] = useState({ isOpen: false, documentoId: null, comentario: '', titulo: '' });
+    const [comentariosModal, setComentariosModal] = useState({ isOpen: false, id: null,tipo:'', comentario: '', titulo: '' });
     const [archivoVistaPrevia, setArchivoVistaPrevia] = useState(null);
     const [mostrarVistaPrevia, setMostrarVistaPrevia] = useState(false);
     const [tipoArchivoVistaPrevia, setTipoArchivoVistaPrevia] = useState("");
@@ -35,30 +35,39 @@ const [filteredDocumentos, setFilteredDocumentos] = useState([]);
 const [mostrarBusquedaAvanzada, setMostrarBusquedaAvanzada] = useState(false); 
 
 
-    const fetchDocumentos = async (filtrosAvanzados = {}) => {
-        try {
-        const baseUrl = `http://localhost:8000/api/Documentos/lista/?ruta=${rutaActual}`;
-        const searchParam = searchTerm.trim() !== "" ? `&search=${encodeURIComponent(searchTerm)}` : "";
+const fetchDocumentos = async (filtrosAvanzados = {}) => {
+    try {
+        const baseUrl = `http://localhost:8000/api/Documentos/lista/?ruta=${encodeURIComponent(rutaActual)}`;
+        const searchParam = searchTerm.trim() ? `&search=${encodeURIComponent(searchTerm)}` : "";
+
+        // Construcción de filtros avanzados, asegurando que no haya parámetros vacíos
         const filtroParams = Object.entries(filtrosAvanzados)
-            .filter(([_, value]) => value) // Solo incluir filtros con valores
-            .map(([key, value]) => `&${key}=${encodeURIComponent(value)}`)
-            .join("");
-            const responseDocs = await fetch(`${baseUrl}${searchParam}${filtroParams}`);
-        const responseCarpetas = await fetch(`http://localhost:8000/api/Carpetas/lista/?ruta=${rutaActual}${searchParam}`);
-            const documentos = await responseDocs.json();
-            const carpetas = await responseCarpetas.json();
-            const carpetasAdaptadas = carpetas
+            .filter(([_, value]) => value) 
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .join("&");
+
+        // URL final con filtros aplicados
+        const documentosUrl = `${baseUrl}${searchParam}${filtroParams ? `&${filtroParams}` : ""}`;
+        const carpetasUrl = `http://localhost:8000/api/Carpetas/lista/?ruta=${encodeURIComponent(rutaActual)}${searchParam}${filtroParams ? `&${filtroParams}` : ""}`;
+
+        const responseDocs = await fetch(documentosUrl);
+        const responseCarpetas = await fetch(carpetasUrl);
+
+        const documentos = await responseDocs.json();
+        const carpetas = await responseCarpetas.json();
+
+        // Adaptar carpetas a la estructura esperada
+        const carpetasAdaptadas = carpetas
             .filter(carpeta => {
                 if (Object.keys(filtrosAvanzados).length > 0) {
-                    const camposDocumentos = ['categoria', 'fechaCreacion'];
-            const aplicaSoloDocumentos = camposDocumentos.some(campo => filtrosAvanzados[campo]);
-            return !aplicaSoloDocumentos;
-                    
+                    const camposDocumentos = ['categoria'];
+                    const aplicaSoloDocumentos = camposDocumentos.some(campo => filtrosAvanzados[campo]);
+                    return !aplicaSoloDocumentos; // Si se filtra por categoría, no incluir carpetas
                 }
                 if (searchTerm.trim() !== "") {
                     return true; 
                 }
-                // Solo mostrar carpetas hijas inmediatas si no hay búsqueda
+                // Mostrar solo carpetas hijas inmediatas si no hay búsqueda
                 const carpetaRelativa = carpeta.url.replace(rutaActual, ''); 
                 return carpetaRelativa.split('/').filter(Boolean).length === 1;
             })
@@ -71,22 +80,29 @@ const [mostrarBusquedaAvanzada, setMostrarBusquedaAvanzada] = useState(false);
                 cliente: carpeta.cliente,
                 fecha_creacion: carpeta.fecha_creacion,
                 ultima_modificacion: carpeta.ultima_modificacion,
-                tipo: "carpeta", // Identificador para diferenciar de documentos
+                comentario: carpeta.comentario,
+                tipo: "carpeta",
             }));
-            const documentosAdaptados = documentos.map(doc => ({
-                ...doc,
-                tipo: "documento", // Identificador para diferenciar de carpetas
-            }));
-            const elementosCombinados = [...documentosAdaptados, ...carpetasAdaptadas]
-    .filter(elemento => elemento.tipo === "documento" || !filtrosAvanzados.categoria) // Excluir carpetas si se filtra por categoría
-    .filter(elemento => elemento.url !== rutaActual)
-    .sort((a, b) => new Date(a.fecha_creacion) - new Date(b.fecha_creacion));
-            
-            setDocumentos(elementosCombinados);
-        } catch (error) {
-            console.error('Error al obtener documentos:', error);
-        }
-    };
+
+        // Adaptar documentos
+        const documentosAdaptados = documentos.map(doc => ({
+            ...doc,
+            tipo: "documento",
+        }));
+
+        // Combinar y filtrar
+        const elementosCombinados = [...documentosAdaptados, ...carpetasAdaptadas]
+            .filter(elemento => elemento.tipo === "documento" || !filtrosAvanzados.categoria) // Excluir carpetas si se filtra por categoría
+            .filter(elemento => elemento.url !== rutaActual)
+            .sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion));
+
+        setDocumentos(elementosCombinados);
+        setFilteredDocumentos(elementosCombinados);
+    } catch (error) {
+        console.error('Error al obtener documentos:', error);
+    }
+};
+
 
     
 
@@ -210,7 +226,12 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
     }
 };
 
+    
+
     const handleAccederCarpeta =async (carpeta) => {
+        setSearchTerm("");
+        setFilteredDocumentos(documentos);
+        
         const clienteId = await obtenerClienteAsociadoCarpeta(carpeta.id);
         const userId = sessionStorage.getItem("userId");
         const clientesAsociados = await clientesAcceso(userId);
@@ -343,8 +364,10 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
     };
 
     useEffect(() => {
-        setFilteredDocumentos(documentos);
-    }, [documentos]);
+        if (!mostrarBusquedaAvanzada) {
+            setFilteredDocumentos(documentos);
+        }
+    }, [documentos, mostrarBusquedaAvanzada]);
     
 
     const handleLogout = () => {
@@ -425,6 +448,10 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
             inputElement.type = 'file';
             inputElement.onchange = (event) => {
                 const file = event.target.files[0];
+                if (!file) {
+        alert("No se seleccionó ningún archivo.");
+        return;
+    }
                 setArchivoSeleccionado(file);
                 setMostrarModal(true);
             };
@@ -433,21 +460,44 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
     };
     
 
-    const handleComentariosClick = async (documentoId) => {
+    const handleComentariosClick = async (id,tipo) => {
         try {
-            const response = await fetch(`http://localhost:8000/api/Documentos/${documentoId}/comentario/`);
+            const endpoint = tipo==="carpeta"
+            ?`http://localhost:8000/api/Carpetas/${id}/manejar-comentarios/`
+            :`http://localhost:8000/api/Documentos/${id}/manejar-comentarios/`
+            const response = await fetch(endpoint);
+            if (!response.ok) {
+                throw new Error('Error al obtener comentarios');
+            }
             const data = await response.json();
-            const comentario = data.comentario || '';
-            const titulo = `${comentario.split('\n').length || 0} comentario(s)`;
-            setComentariosModal({ isOpen: true, documentoId, comentario, titulo });
+
+            // Procesar los comentarios como un solo texto
+            const comentarios = data.comentarios || [];
+            const comentarioTexto = comentarios.join("\n");
+            const titulo = comentarios.length > 0 ? 'Ver Comentarios' : 'Añadir Comentario';
+
+            setComentariosModal({
+                isOpen: true,
+                id,
+                tipo,
+                comentario: comentarioTexto, // Se pasa como texto plano al modal
+                titulo,
+            });
         } catch (error) {
             console.error('Error al cargar comentarios:', error);
         }
     };
 
+
     const closeComentariosModal = () => {
-        setComentariosModal({ isOpen: false, documentoId: null, comentario: '', titulo: '' });
+        setComentariosModal({ isOpen: false, id: null, tipo:'', comentario: '', titulo: '' });
     };
+
+    const renderComentariosLink = (doc) => (
+        <a href="#!" onClick={() => handleComentariosClick(doc.id, doc.tipo)}>
+            {doc.comentario ? 'Ver' : 'Añadir'}
+        </a>
+    );
 
     
 
@@ -549,26 +599,63 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
             return;
         } setMostrarCrearCarpeta(true);
     };
+
+    const handleUbicacionClick = (doc) => {
+        const ubicacion = doc.tipo === "carpeta" 
+            ? { mensaje: `La ruta es: ${doc.url}` } 
+            : { mensaje: `La ruta es: ${doc.archivo}` };
+    
+        console.log(ubicacion); // Esto mostrará el JSON en la consola del navegador
+        alert(JSON.stringify(ubicacion, null, 2)); // Opcional: Mostrar en una alerta
+    };
+
+    const handleDropdownPosition = (event) => {
+        const dropdownContent = event.currentTarget.querySelector(".dropdown-content");
+        const rect = event.currentTarget.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+    
+        // Ajusta la posición del dropdown según su espacio disponible
+        if (rect.bottom + dropdownContent.offsetHeight > viewportHeight) {
+            dropdownContent.style.top = `${rect.top - dropdownContent.offsetHeight}px`;
+        } else {
+            dropdownContent.style.top = `${rect.bottom}px`;
+        }
+        dropdownContent.style.left = `${rect.left}px`;
+        dropdownContent.style.display = "block"; // Asegura que se muestre
+    };
+    
+    // Llama a esta función en cada dropdown cuando se haga hover o clic
+    document.querySelectorAll(".dropdown").forEach((dropdown) => {
+        dropdown.addEventListener("mouseenter", handleDropdownPosition);
+        dropdown.addEventListener("mouseleave", () => {
+            const dropdownContent = dropdown.querySelector(".dropdown-content");
+            dropdownContent.style.display = "none";
+        });
+    });
+    
     
         const renderAccion = (doc) => {
+            
+            
         if (doc.tipo === "carpeta") {
             return (
-                <div className="dropdown">
+                <div className="dropdown" nMouseEnter={handleDropdownPosition}>
                     <button className="btn-dropdown" onClick={() => handleAccederCarpeta(doc)}>Acceder</button>
                     <div className="dropdown-content">
                         <button onClick={() => handleEditarCarpeta(doc)}>Editar</button>
-                        <button onClick={() => eliminarCarpeta(doc.id)} >Eliminar</button>
+                        <button onClick={() => handleUbicacionClick(doc)}>Ubicación</button>
+                        <button onClick={() => eliminarCarpeta(doc.id)} className="boton-accion boton-eliminar">Eliminar</button>
                     </div>
                 </div>
             );
         }
         return (
-            <div className="dropdown">
+            <div className="dropdown" nMouseEnter={handleDropdownPosition}>
                 <button className="btn-dropdown" onClick={() => handleVerArchivo(doc)}>Ver</button>
                 <div className="dropdown-content">
                     <button onClick={() => handleEditarClick(doc)}>Editar</button>
                     <button onClick={() => handleAction('download', doc.id)}>Descargar</button>
-                    <button >Mover</button>
+                    <button onClick={() => handleUbicacionClick(doc)} >Ubicación</button>
                     <button onClick={() => eliminarDocumento(doc.id)} className="boton-accion boton-eliminar">
                         Eliminar
                     </button>
@@ -580,9 +667,9 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
 
     return (
         <div className="documentos-container">
-            <h1>Bienvenido al sistema de gestion de documentos PDGR!!!</h1>
-            <p>Hola {userName}, aqui podra subir sus archivos y gestionarlos como le plazaca.</p>
-<p>Nota: Si no puede realizar una accion en especifico, probablemente sea por falta de permisos, por favor comuniquese con el administrador.</p>
+            <h1 className="Bienvenida">Bienvenido al sistema de gestion de documentos PDGR!!!</h1>
+            <p className="Informacion">Hola {userName}, aqui podra subir sus archivos y gestionarlos como le plazaca.</p>
+<p className="Informacion">Nota: Si no puede realizar una accion en especifico, probablemente sea por falta de permisos, por favor comuniquese con el administrador.</p>
             <div className='botones-container'>
                 <button onClick={handleLogout} className="btn-logout">
                     Cerrar Sesión
@@ -631,10 +718,10 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
                     onUploadSuccess={fetchDocumentos}
                 />
             )}
-
-            <table className="tabla-documentos">
-                <div className="tabla-documentos-container">
-                    <thead>
+        <div className="table-responsive">
+            <table className="table table-hover table-striped table-bordered">
+                
+                    <thead className="thead-light">
                         <tr>
                             <th>Acción</th>
                             <th class="scrollable">Nombre</th>
@@ -661,9 +748,7 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
                                     <td>{new Date(doc.fecha_creacion).toLocaleString()}</td>
                                     <td>{new Date(doc.ultima_modificacion).toLocaleString()}</td>
                                     <td>
-                                        <a href="#!" onClick={() => handleComentariosClick(doc.id)}>
-                                            {doc.comentario ? 'Ver' : 'Añadir'}
-                                        </a>
+                                    {renderComentariosLink(doc)}
                                     </td>
                                 </tr>
                             ))
@@ -673,12 +758,12 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
                             </tr>
                         )}
                     </tbody>
-                    <footer className="footer">
+                    
+                </table>
+            </div>
+            <footer className="footer">
             <p>&copy; {new Date().getFullYear()} Gestión Documental - Todos los derechos reservados.</p>
         </footer>
-                </div>
-            </table>
-
             {mostrarVistaPrevia && (
                 <VistaPreviaArchivo
                     isOpen={mostrarVistaPrevia}
@@ -690,7 +775,8 @@ const obtenerClienteAsociadoCarpeta = async (carpetaId) => {
             {comentariosModal.isOpen && (
                 <ComentariosModal
                     isOpen={comentariosModal.isOpen}
-                    documentoId={comentariosModal.documentoId}
+                    id={comentariosModal.id}
+                    tipo={comentariosModal.tipo}
                     comentario={comentariosModal.comentario}
                     titulo={comentariosModal.titulo}
                     onClose={closeComentariosModal}

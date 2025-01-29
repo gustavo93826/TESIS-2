@@ -22,7 +22,8 @@ const UsuarioForm = () => {
             try {
                 const respuesta = await fetch("http://localhost:8000/api/usuarios/");
                 const datos = await respuesta.json();
-                setUsuarios(datos);
+                const usuariosOrdenados = datos.sort((a, b) => a.rol - b.rol);
+                setUsuarios(usuariosOrdenados);
             } catch (error) {
                 console.error("Error al cargar usuarios:", error);
             } finally {
@@ -74,6 +75,7 @@ const UsuarioForm = () => {
                     usuario.id === datos.id ? datos : usuario
                 )
             );
+            
             setUsuarioSeleccionado(null);
         } catch (error) {
             console.error("Error al actualizar usuario:", error);

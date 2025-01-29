@@ -41,6 +41,7 @@ const EditarUsuarioForm = ({ usuario, onClose, onUsuarioActualizado }) => {
 
             if (respuesta.ok) {
                 const datosActualizados = await respuesta.json();
+                alert('Se ha editado el usuario correctamente.');
                 onUsuarioActualizado(datosActualizados);
                 onClose();
             } else {

@@ -11,7 +11,7 @@ class PermisoGlobal(models.Model):
         verbose_name="Usuario"
     )
     
-    activar = models.BooleanField(default=False, verbose_name="Permiso activado")
+    activar = models.BooleanField(default=True, verbose_name="Permiso activado")
     
     subir_archivo = models.BooleanField(default=False, verbose_name="Permiso para subir documentos")
     crear_carpeta = models.BooleanField(default=False, verbose_name="Permiso para crear carpetas")

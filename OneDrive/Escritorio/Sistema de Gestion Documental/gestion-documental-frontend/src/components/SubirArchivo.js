@@ -2,19 +2,53 @@ import React, { useState } from 'react';
 import './SubirArchivo.css';
 
 const SubirArchivo = ({ userName, clientes, archivo, rutaActual,ubicacion,onClose, onUploadSuccess }) => {
-    const [nombre, setNombre] = useState('');
+    const getFileNameWithoutExtension = (file) => {
+        return file ? file.name.split('.').slice(0, -1).join('.') : '';
+    };
+    const [nombre, setNombre] = useState(getFileNameWithoutExtension(archivo));
     const [comentario, setComentario] = useState('');
     const [categoria, setCategoria] = useState('otro');
     const [privacidad, setPrivacidad] = useState('publico');
     const [clienteSeleccionado, setClienteSeleccionado] = useState('');
+    const [mensajeError, setMensajeError] = useState("");
+    
 
-    const handleSubmit = async (e) => {
+    const clientesAcceso = async (userId) => {
+        try {
+          const response = await fetch(
+            `http://localhost:8000/api/Permisos/cliente-archivos-ids/?user_id=${userId}`,
+            {
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+          if (!response.ok) {
+            throw new Error("Error al verificar permisos");
+          }
+          const Acceso = await response.json();
+          return Acceso.cliente_archivos_ids;
+        } catch (error) {
+          console.error("Error al verificar permisos:", error);
+          alert("Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.");
+          return [];
+        }
+      };
+
+      const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         if (!clienteSeleccionado) {
-            alert('Por favor selecciona un cliente.');
-            return;
-            
+        alert("Por favor selecciona un cliente.");
+        return;
+        }
+    
+        // Verificar si el cliente seleccionado está permitido
+        const userId = sessionStorage.getItem("userId"); 
+        const clientesPermitidos = await clientesAcceso(userId);
+    
+        if (clientesPermitidos.length > 0 &&  !clientesPermitidos.includes(parseInt(clienteSeleccionado))) {
+        setMensajeError("No puedes elegir este cliente.");
+        return;
         }
 
         const formData = new FormData();
@@ -73,7 +107,10 @@ const SubirArchivo = ({ userName, clientes, archivo, rutaActual,ubicacion,onClos
                         <label>Cliente</label>
                         <select
                             value={clienteSeleccionado}
-                            onChange={(e) => setClienteSeleccionado(e.target.value)}
+                            onChange={(e) => {
+                                setClienteSeleccionado(e.target.value);
+                                setMensajeError("");
+                            }}
                             required
                         >
                             <option value="">Selecciona un cliente</option>
@@ -84,6 +121,7 @@ const SubirArchivo = ({ userName, clientes, archivo, rutaActual,ubicacion,onClos
                             ))}
                         </select>
                     </div>
+                    {mensajeError && <p className="error-message">{mensajeError}</p>}
                     <div className="form-group">
                         <label>Categoría</label>
                         <select
@@ -98,6 +136,7 @@ const SubirArchivo = ({ userName, clientes, archivo, rutaActual,ubicacion,onClos
                             <option value="comunicacion">Comunicación</option>
                             <option value="contrato">Contrato</option>
                             <option value="declaracion">Declaración</option>
+                            <option value="demanda">Demanda</option>
                             <option value="disposicion">Disposición</option>
                             <option value="estatutos">Estatutos</option>
                             <option value="forma">Forma</option>
@@ -108,32 +147,18 @@ const SubirArchivo = ({ userName, clientes, archivo, rutaActual,ubicacion,onClos
                             <option value="repuesta">Respuesta</option>
                             <option value="reporte">Reporte</option>
                             <option value="resolucion">Resolución</option>
+                            <option value="sentencia">Sentencia</option>
                             <option value="solicitud">Solicitud</option>
                         </select>
                     </div>
-                    <div className="form-group">
-                        <label>Privacidad</label>
-                        <select
-                            value={privacidad}
-                            onChange={(e) => setPrivacidad(e.target.value)}
-                        >
-                            <option value="publico">Público</option>
-                            <option value="privado">Privado</option>
-                        </select>
-                    </div>
-                    <div className="form-group">
-                        <label>Comentario</label>
-                        <textarea
-                            value={comentario}
-                            onChange={(e) => setComentario(e.target.value)}
-                        ></textarea>
-                    </div>
+                    
                     <div className="modal-actions">
-                        <button type="submit" className="btn-submit">
-                            Subir Documento
-                        </button>
+                        
                         <button type="button" className="btn-cancel" onClick={onClose}>
                             Cancelar
+                        </button>
+                        <button type="submit" className="btn-submit">
+                            Subir Documento
                         </button>
                     </div>
                 </form>

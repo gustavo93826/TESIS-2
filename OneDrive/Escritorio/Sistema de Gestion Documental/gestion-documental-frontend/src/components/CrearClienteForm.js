@@ -38,6 +38,7 @@ const CrearClienteForm = ({ onClose, onClienteCreado }) => {
 
             if (respuesta.ok) {
                 const nuevoCliente = await respuesta.json();
+                alert('Se ha añadido el nuevo cliente.');
                 onClienteCreado(nuevoCliente); // Notificar al componente principal
                 onClose(); // Cerrar el formulario
             } else {

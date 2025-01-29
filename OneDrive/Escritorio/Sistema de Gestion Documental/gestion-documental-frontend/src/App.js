@@ -8,6 +8,7 @@ import GestionClientesPage from './pages/GestionClientesPage';
 import AsignarPermisosPage from './pages/AsignarPermisosPage';
 import CambiarContrasena from "./components/CambiarContrasena";
 import RegistrosPage from './pages/RegistrosPage';
+import InformacionPage from './pages/InformacionPage';
 
 const App = () => {
     return (
@@ -19,6 +20,7 @@ const App = () => {
                 <Route path="/admin/*" element={
                     <AdminForm>
                         <Routes>
+                            <Route path="informacion" element={<InformacionPage />} />
                             <Route path="gestion-usuarios" element={<GestionUsuariosPage />} />
                             <Route path="gestion-clientes" element={<GestionClientesPage />} />
                             <Route path="asignar-permisos" element={<AsignarPermisosPage />} />

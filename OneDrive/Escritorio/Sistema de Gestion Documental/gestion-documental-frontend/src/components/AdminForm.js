@@ -5,11 +5,16 @@ import Sidebar from './Sidebar';
 function AdminForm({ children }) {
     return (
         <>
+        
             <div className="flex">
                 <Sidebar />
+                
                 <div className="content "><Navbar />{children}
                 
                 </div>
+            </div>
+            <div>
+            
             </div>
         </>
     );

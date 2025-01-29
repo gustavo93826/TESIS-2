@@ -30,11 +30,18 @@ const VistaPreviaArchivo = ({ isOpen, onClose, file, fileType }) => {
         } else if (fileType === "pptx") {
           const response = await fetch(file);
           const arrayBuffer = await response.arrayBuffer();
+          console.log(arrayBuffer); 
           if (pptxContainerRef.current) {
             pptxContainerRef.current.style.width = "100%";
             pptxContainerRef.current.style.height = "800px";
-            pptxContainerRef.current.innerHTML = "";
-            await init({ container: pptxContainerRef.current, file: arrayBuffer });
+            pptxContainerRef.current.style.overflow = "auto";
+            
+            
+            try {
+              init({ container: pptxContainerRef.current, file: arrayBuffer });
+            } catch (err) {
+              console.error("Error inicializando pptx-preview:", err);
+            }
           }
         } else if (fileType === "xlsx") {
           const response = await fetch(file);
@@ -119,7 +126,7 @@ const VistaPreviaArchivo = ({ isOpen, onClose, file, fileType }) => {
                   height: "800px",
                   overflow: "auto",
                   border: "1px solid red",
-                  backgroundColor: "#f9f9f9",
+                  
                 }}
               ></div>
             ) : (

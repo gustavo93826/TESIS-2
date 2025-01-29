@@ -8,14 +8,20 @@ const PermisosUsuarioForm = () => {
     const [modalAbierto, setModalAbierto] = useState(false);
     const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
 
+    const roles = {
+        1: "Administrador",
+        2: "Abogado",
+        3: "Auxiliar Administrativo",
+        4: "Asistente",
+    };
+
     useEffect(() => {
         const obtenerUsuarios = async () => {
             try {
                 const respuesta = await fetch("http://localhost:8000/api/Permisos/lista/");
                 const datos = await respuesta.json();
-                datos.sort((a, b) => a.id - b.id);
-            
-                setUsuarios(datos);
+                const permisosOrdenados = datos.sort((a, b) => a.rol - b.rol);
+            setUsuarios(permisosOrdenados);
             } catch (error) {
                 console.error("Error al cargar permisos de usuarios:", error);
             } finally {
@@ -76,11 +82,11 @@ const PermisosUsuarioForm = () => {
                         <tr>
                             <th>Activar</th>
                             <th>Nombre</th>
+                            <th>Rol</th>
                             <th>Archivos</th>
                             <th>Subir Archivos</th>
                             <th>Crear Carpetas</th>
                             <th>Editar</th>
-                            <th>Mover</th>
                             <th>Ver</th>
                             <th>Eliminar</th>
                             <th>Descargar</th>
@@ -106,6 +112,7 @@ const PermisosUsuarioForm = () => {
                 </label>
             </td>
                                 <td>{usuario.nombre}</td>
+                                <td>{roles[usuario.rol] || "Desconocido"}</td>
                                 <td>
                                     <button
                                         className="btn-acceso"
@@ -118,7 +125,6 @@ const PermisosUsuarioForm = () => {
                                     "subir_archivo",
                                     "crear_carpeta",
                                     "editar",
-                                    "mover",
                                     "ver",
                                     "eliminar",
                                     "descargar",

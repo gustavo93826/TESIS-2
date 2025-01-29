@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.timezone import now
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from rest_framework.response import Response
@@ -21,6 +22,8 @@ from django.views.decorators.http import require_GET
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.functions import TruncDate
 from RegistroActividades.models import Registro
+import json
+import re
 
 class DocumentoUploadView(APIView):
     def post(self, request, *args, **kwargs):
@@ -74,6 +77,7 @@ class DocumentoUploadView(APIView):
                 usuario=usuario,
                 documento=documento,
                 carpeta=carpeta,
+                cliente=cliente,
                 descripcion=descripcion
             )
             
@@ -183,6 +187,7 @@ class CarpetaListView(APIView):
                     "cliente": carpeta.cliente.nombre,
                     "fecha_creacion": carpeta.fecha_creacion,
                     "ultima_modificacion": carpeta.ultima_modificacion,
+                    "comentario": carpeta.comentario,
                 }
                 for carpeta in carpetas
             ]
@@ -206,7 +211,7 @@ def eliminar_documento(request, documento_id):
         
         nombre_documento = documento.nombre
         carpeta = documento.carpeta  
-        
+        cliente = documento.cliente
         # Obtener la ruta del archivo en el sistema de archivos
         ruta_archivo = os.path.join(settings.MEDIA_ROOT, documento.archivo.name)
         
@@ -225,6 +230,7 @@ def eliminar_documento(request, documento_id):
         Registro.objects.create(
                 usuario=usuario,
                 carpeta=carpeta,
+                cliente=cliente,
                 descripcion=descripcion
             )
         
@@ -273,11 +279,15 @@ class DocumentoUpdateView(APIView):
 
             # Actualizar cliente
             if nuevo_cliente_id:
+                try:
+                    nuevo_cliente_id = int(nuevo_cliente_id)  # Convertir a entero
+                except ValueError:
+                    return Response({"error": "El ID del cliente debe ser un número."}, status=status.HTTP_400_BAD_REQUEST)
                 nuevo_cliente = get_object_or_404(Cliente, id=nuevo_cliente_id)
                 documento.cliente = nuevo_cliente
                 cambios_realizados.append(
-                    f"[{fecha_hora_actual.strftime('%d/%m/%Y (%I:%M %p)')}] {usuario.nombre} modificó el cliente asociado al archivo {documento.nombre} de {cliente_anterior.nombre} a {nuevo_cliente.nombre}"
-                )
+        f"[{fecha_hora_actual.strftime('%d/%m/%Y (%I:%M %p)')}] {usuario.nombre} modificó el cliente asociado al archivo {documento.nombre} de {cliente_anterior.nombre} a {nuevo_cliente.nombre}"
+    )
 
             # Guardar los cambios
             documento.save()
@@ -286,6 +296,7 @@ class DocumentoUpdateView(APIView):
                 Registro.objects.create(
                     usuario=usuario,
                     documento=documento,
+                    cliente=nuevo_cliente,
                     descripcion=descripcion
                 )
 
@@ -311,6 +322,10 @@ class CrearCarpetaView(APIView):
             
             if not nombre:
                 return Response({"error": "El nombre de la carpeta es obligatorio."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if re.search(r'[\/\\<>:"|?*]', nombre):
+                return Response({"error": "El nombre de la carpeta contiene caracteres no permitidos."}, status=status.HTTP_400_BAD_REQUEST)
+            
             if not cliente_id:
                 return Response({"error": "El cliente asociado es obligatorio."}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -343,6 +358,7 @@ class CrearCarpetaView(APIView):
             Registro.objects.create(
                 usuario=usuario,
                 carpeta=carpeta,
+                cliente=cliente,
                 descripcion=descripcion
             )
             
@@ -409,6 +425,7 @@ class CarpetaUpdateView(APIView):
                 Registro.objects.create(
                     usuario=usuario,
                     carpeta=carpeta,
+                    cliente=nuevo_cliente,
                     descripcion=descripcion
                 )
 
@@ -439,7 +456,7 @@ class EliminarCarpetaView(APIView):
             modificado_por = request.GET.get('modificado_por')
             usuario = get_object_or_404(Usuario, nombre=modificado_por)
             fecha_hora_actual = datetime.now()
-
+            cliente=carpeta.cliente
             # Mensaje principal
             descripcion = [
                 f"[{fecha_hora_actual.strftime('%d/%m/%Y (%I:%M %p)')}] {usuario.nombre} eliminó la carpeta '{carpeta.nombre}'"
@@ -478,7 +495,8 @@ class EliminarCarpetaView(APIView):
             # Crear registro con descripción unificada
             Registro.objects.create(
                 usuario=usuario,
-                carpeta=None,  # Registro general
+                carpeta=None,
+                cliente=cliente,
                 descripcion="\n".join(descripcion)  # Convertir la lista en un texto ordenado
             )
 
@@ -512,36 +530,77 @@ def lista_carpetas(request):
 
 
 #///////////////////////////////////////////////////////////////////////////
+@csrf_exempt
+def manejar_comentarios(request, documento_id):
+    documento = get_object_or_404(Documento, id=documento_id)
 
-@api_view(['GET', 'POST'])
-def comentario_documento_view(request, documento_id):
     if request.method == 'GET':
-        try:
-            # Aquí reemplaza con tu lógica para obtener el comentario
-            comentario = {
-                'id': documento_id,
-                'nombre': 'Documento ejemplo',
-                'comentario': '',
-            }
-            return Response(comentario, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        # Obtener y retornar los comentarios en formato JSON
+        comentarios = documento.comentario.split("\n") if documento.comentario else []
+        return JsonResponse({"comentarios": comentarios}, safe=False)
 
     elif request.method == 'POST':
-        try:
-            # Aquí reemplaza con tu lógica para guardar el comentario
-            comentario_data = request.data.get('comentario', '')
-            if not comentario_data:
-                return Response({'error': 'El comentario no puede estar vacío'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Simula guardar el comentario (aquí lo escribirías en tu base de datos)
-            return Response({'mensaje': 'Comentario guardado con éxito'}, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        data = json.loads(request.body)
+        nuevo_comentario = data.get("comentario")
+        usuario = data.get("usuario")
 
-    # Devuelve una respuesta predeterminada si no se reconoce el método
+        if not nuevo_comentario:
+            return JsonResponse({"error": "El comentario no puede estar vacío."}, status=400)
+
+        if not usuario:
+            return JsonResponse({"error": "El usuario es obligatorio."}, status=400)
+        
+        # Formatear el nuevo comentario con la fecha, hora y usuario
+        timestamp = now().strftime("[%d/%m/%Y (%I:%M %p)]")
+        comentario_formateado = f"{timestamp} {usuario}: {nuevo_comentario}"
+
+        # Agregar el comentario al campo `comentario`
+        if documento.comentario:
+            documento.comentario += f"\n{comentario_formateado}"
+        else:
+            documento.comentario = comentario_formateado
+
+        documento.save()
+
+        # Retornar la lista actualizada de comentarios
+        comentarios = documento.comentario.split("\n")
+        return JsonResponse({"comentarios": comentarios}, safe=False)
+
+    return JsonResponse({"error": "Método no permitido."}, status=405)
     return Response({'error': 'Método no permitido'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+@csrf_exempt
+def manejar_comentarios_carpeta(request, carpeta_id):
+    carpeta = get_object_or_404(Carpeta, id=carpeta_id)
+
+    if request.method == 'GET':
+        comentarios = carpeta.comentario.split("\n") if carpeta.comentario else []
+        return JsonResponse({"comentarios": comentarios}, safe=False)
+
+    elif request.method == 'POST':
+        data = json.loads(request.body)
+        nuevo_comentario = data.get("comentario")
+        usuario = data.get("usuario")
+
+        if not nuevo_comentario:
+            return JsonResponse({"error": "El comentario no puede estar vacío."}, status=400)
+
+        if not usuario:
+            return JsonResponse({"error": "El usuario es obligatorio."}, status=400)
+
+        timestamp = now().strftime("[%d/%m/%Y (%I:%M %p)]")
+        comentario_formateado = f"{timestamp} {usuario}: {nuevo_comentario}"
+
+        if carpeta.comentario:
+            carpeta.comentario += f"\n{comentario_formateado}"
+        else:
+            carpeta.comentario = comentario_formateado
+
+        carpeta.save()
+        comentarios = carpeta.comentario.split("\n")
+        return JsonResponse({"comentarios": comentarios}, safe=False)
+
+    return JsonResponse({"error": "Método no permitido."}, status=405)
 
 
 @api_view(['GET'])
@@ -563,3 +622,16 @@ def obtener_cliente_asociado_carpeta(request, carpeta_id):
         return Response({'cliente_id': cliente_id}, status=status.HTTP_200_OK)
     except Carpeta.DoesNotExist:
         return Response({'error': 'Carpeta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+
+def lista_documentos(request):
+    if request.method == "GET":
+        documentos= Documento.objects.all().values('id', 'nombre')
+        return JsonResponse(list(documentos), safe=False)
+    
+
+def lista_carpetas(request):
+    if request.method == "GET":
+        carpetas= Carpeta.objects.all().values('id', 'nombre')
+        return JsonResponse(list(carpetas), safe=False)

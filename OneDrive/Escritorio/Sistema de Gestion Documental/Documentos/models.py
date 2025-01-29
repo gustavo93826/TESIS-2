@@ -20,6 +20,7 @@ class Documento(models.Model):
         ('comunicacion', 'Comunicacion'),
         ('contrato', 'Contrato'),
         ('declaracion', 'Declaración'),
+        ('demanda', 'Demanda'),
         ('disposicion', 'Disposición'),
         ('estatutos', 'Estatutos'),
         ('forma', 'Forma'),
@@ -30,6 +31,7 @@ class Documento(models.Model):
         ('repuesta', 'Repuesta'),
         ('reporte', 'Reporte'),
         ('resolucion', 'Resolución'),
+        ('sentencia', 'Sentencia'),
         ('solicitud', 'Solicitud'),
         ('otro', 'Otro'),
     ]
@@ -39,8 +41,8 @@ class Documento(models.Model):
     archivo = models.FileField(upload_to='documentos/', default='documentos/', verbose_name="Archivo")
     carpeta=models.ForeignKey(Carpeta, on_delete=models.CASCADE, null=True, blank=True, related_name="documentos", 
     verbose_name="Carpeta asociada")
-    creado_por = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="documentos_creados", verbose_name="Creado por")
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name="documentos_cliente", verbose_name="Cliente asociado")
+    creado_por = models.ForeignKey(Usuario, on_delete=models.SET_DEFAULT,default=100 ,related_name="documentos_creados", verbose_name="Creado por")
+    cliente = models.ForeignKey(Cliente, on_delete=models.SET_DEFAULT, default=100,related_name="documentos_cliente", verbose_name="Cliente asociado")
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
     ultima_modificacion = models.DateTimeField(auto_now=True, verbose_name="Última modificación")
     privacidad = models.CharField(max_length=10, choices=PRIVACIDAD_CHOICES, default='privado', verbose_name="Privacidad del documento")

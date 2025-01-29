@@ -8,16 +8,16 @@ from Clientes.models import Cliente
 @csrf_exempt
 def listar_permisos(request):
     if request.method == "GET":
-        permisos = PermisoGlobal.objects.select_related('usuario').all()
+        permisos = PermisoGlobal.objects.select_related('usuario').order_by("usuario__rol")
         data = [
             {
                 "id": permiso.usuario.id,
                 "nombre": permiso.usuario.nombre,
+                "rol": permiso.usuario.rol,
                 "activar": permiso.activar,
                 "subir_archivo": permiso.subir_archivo,
                 "crear_carpeta": permiso.crear_carpeta,
                 "editar": permiso.editar,
-                "mover": permiso.mover,
                 "ver": permiso.ver,
                 "eliminar": permiso.eliminar,
                 "descargar": permiso.descargar,
@@ -57,7 +57,6 @@ def obtener_permisos(request):
                 "subir_archivo": permisos_obj.subir_archivo,
                 "crear_carpeta": permisos_obj.crear_carpeta,
                 "editar": permisos_obj.editar,
-                "mover": permisos_obj.mover,
                 "eliminar": permisos_obj.eliminar,
                 "ver": permisos_obj.ver,
                 "descargar": permisos_obj.descargar,
