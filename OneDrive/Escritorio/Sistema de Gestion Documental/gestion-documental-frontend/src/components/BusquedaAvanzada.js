@@ -28,7 +28,7 @@ const BusquedaAvanzada = ({ clientes, usuarios, onClose, onBuscar }) => {
 
         // Guardar filtros en localStorage
         localStorage.setItem('filtrosBusqueda', JSON.stringify(filtros));
-
+        
         onBuscar(filtros); // Enviar filtros al backend o a otro componente
         onClose(); // Cerrar el modal
     };
@@ -76,6 +76,7 @@ const BusquedaAvanzada = ({ clientes, usuarios, onClose, onBuscar }) => {
                             <option value="comunicacion">Comunicación</option>
                             <option value="contrato">Contrato</option>
                             <option value="declaracion">Declaración</option>
+                            <option value="demanda">Demanda</option>
                             <option value="disposicion">Disposición</option>
                             <option value="estatutos">Estatutos</option>
                             <option value="forma">Forma</option>
@@ -86,6 +87,7 @@ const BusquedaAvanzada = ({ clientes, usuarios, onClose, onBuscar }) => {
                             <option value="repuesta">Respuesta</option>
                             <option value="reporte">Reporte</option>
                             <option value="resolucion">Resolución</option>
+                            <option value="sentencia">Sentencia</option>
                             <option value="solicitud">Solicitud</option>
                         </select>
                     </div>

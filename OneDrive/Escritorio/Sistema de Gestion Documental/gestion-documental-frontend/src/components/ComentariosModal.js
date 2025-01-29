@@ -1,48 +1,74 @@
 import React, { useState } from 'react';
 import './ComentariosModal.css';
 
-const ComentariosModal = ({ isOpen, documentoId, comentario, titulo, onClose, onUpdate }) => {
-    const [nuevoComentario, setNuevoComentario] = useState(comentario || '');
+const ComentariosModal = ({ isOpen, id, tipo, comentario, titulo, onClose, onUpdate }) => {
+    const [nuevoComentario, setNuevoComentario] = useState('');
 
-    const handleGuardar = async () => {
+    const handleInputChange = (e) => {
+        setNuevoComentario(e.target.value);
+    };
+
+    const handleAddComment = async () => {
+        if (!nuevoComentario.trim()) {
+            alert('El comentario no puede estar vacío.');
+            return;
+        }
+
+        const userName = sessionStorage.getItem('userName'); // Obtener el usuario del sessionStorage
+
+        if (!userName) {
+            alert('No se encontró el nombre de usuario.');
+            return;
+        }
+
         try {
-            const response = await fetch(`http://localhost:8000/api/Documentos/${documentoId}/comentario/`, {
+            const endpoint =
+                tipo ==='carpeta'
+                ? `http://localhost:8000/api/Carpetas/${id}/manejar-comentarios/`
+                : `http://localhost:8000/api/Documentos/${id}/manejar-comentarios/`;
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ comentario: nuevoComentario }),
+                body: JSON.stringify({ comentario: nuevoComentario, usuario: userName, }),
             });
 
-            if (response.ok) {
-                alert('Comentario guardado exitosamente');
-                onClose();
-                if (onUpdate) onUpdate(); // Actualiza la lista de documentos después de guardar el comentario
-            } else {
-                alert('Error al guardar el comentario');
+            if (!response.ok) {
+                throw new Error('Error al agregar el comentario.');
             }
+
+            const data = await response.json();
+            alert('Comentario agregado con éxito.');
+            onUpdate(); // Refresca la lista de documentos
+            onClose();  // Cierra el modal
         } catch (error) {
-            console.error('Error al guardar el comentario:', error);
-            alert('Ocurrió un error al guardar el comentario');
+            console.error('Error al agregar el comentario:', error);
         }
     };
 
+    if (!isOpen) return null;
+
     return (
-        <div className={`comentarios-modal ${isOpen ? 'open' : ''}`}>
+        <div className="modal-overlay">
             <div className="modal-content">
-                <h2>{titulo || 'Comentarios'}</h2>
+                <h2>{titulo}</h2>
                 <textarea
+                    className="nuevo-comentario-textarea"
                     value={nuevoComentario}
-                    onChange={(e) => setNuevoComentario(e.target.value)}
-                    placeholder="Escribe un comentario..."
+                    onChange={handleInputChange}
+                    placeholder="Escribe un nuevo comentario aquí..."
                 />
-                <div className="modal-actions">
-                    <button onClick={onClose} className="btn-cerrar">
-                        Cerrar
-                    </button>
-                    <button onClick={handleGuardar} className="btn-guardar">
-                        Guardar
-                    </button>
+                <textarea
+                    className="comentarios-textarea"
+                    value={comentario}
+                    readOnly
+                    placeholder="No hay comentarios todavía."
+                />
+                <div className="modal-buttons">
+                    <button className="btn" onClick={handleAddComment}>Añadir Comentario</button>
+                    <button className="btn" onClick={onClose}>Cerrar</button>
                 </div>
             </div>
         </div>

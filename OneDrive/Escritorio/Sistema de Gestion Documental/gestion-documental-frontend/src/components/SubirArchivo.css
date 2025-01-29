@@ -173,3 +173,10 @@ textarea {
 .btn-clear:hover{
     background-color: #00427a;
 }
+
+
+.error-message {
+    color: red!important;
+    font-size: 14px!important;
+    margin-top: 5px!important;
+}

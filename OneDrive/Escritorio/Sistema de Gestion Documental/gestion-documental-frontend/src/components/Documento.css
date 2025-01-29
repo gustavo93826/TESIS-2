@@ -1,3 +1,9 @@
+body {
+    background-color: #004E6D; /* Color de fondo igual al contenedor */
+    margin: 0;
+    padding: 0;
+}
+
 /* Contenedor principal */
 .documentos-container {
     max-width: 100%;
@@ -5,6 +11,9 @@
     background-color: #004E6D;
     font-family: Arial, sans-serif;
     color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Botón de cerrar sesión */
@@ -23,7 +32,7 @@
 }
 
 /* Encabezado */
-h1 {
+.Bienvenida {
     color: #ccc!important;
     font-size: 24px;
     font-weight: bold;
@@ -31,7 +40,7 @@ h1 {
     margin: 10px 0;
 }
 
-p {
+.Informacion {
     color: #ccc !important;
     font-size: 14px;
     text-align: center;
@@ -99,25 +108,23 @@ p {
 }
 
 /* Tabla de documentos */
-.tabla-documentos {
-    width: 75%;
-    margin: 20px auto ;
+.table {
+    width: 100%;
+    margin: 0 auto;
     border-collapse: collapse;
-    background-color: white;
-    table-layout: fixed!important;
     border-radius: 10px;
     overflow: hidden;
-    margin-top: 20px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    
 }
 
 .tabla-documentos-container {
-    width: 100% !important; /* Usar todo el ancho disponible */
-    min-width: 800px; 
-    overflow-x: auto; /* Scroll horizontal si es necesario */
+    margin: 20px auto;
+    overflow-x: auto;
+    padding: 0 15px;
+    
 }
 
-.tabla-documentos td.scrollable {
+.table td.scrollable {
     
     max-width: 150px; /* Ancho máximo para la columna */
     white-space: nowrap; /* Evita que el texto se divida en varias líneas */
@@ -128,76 +135,49 @@ p {
 }
 
 /* Encabezados para columna específica */
-.tabla-documentos th.scrollable {
+.table th.scrollable {
     max-width: 150px; /* Asegura que el encabezado también tenga límite */
     white-space: nowrap; /* Evita saltos de línea en encabezados */
 }
 
 /* Personalización opcional del estilo del scroll */
-.tabla-documentos td.scrollable::-webkit-scrollbar {
+.table td.scrollable::-webkit-scrollbar {
     height: 6px; /* Altura del scrollbar */
 }
 
-.tabla-documentos td.scrollable::-webkit-scrollbar-thumb {
+.table td.scrollable::-webkit-scrollbar-thumb {
     background: #ccc; /* Color del scroll */
     border-radius: 10px;
 }
 
-.tabla-documentos td.scrollable::-webkit-scrollbar-thumb:hover {
+.table td.scrollable::-webkit-scrollbar-thumb:hover {
     background: #999; /* Color al pasar el mouse */
 }
 
 
 
-.tabla-documentos th, .tabla-documentos td {
-    border: 1px solid black;
-    padding: 20px;
-    
-    font-size: 16px;
-    
-}
-
-.tabla-documentos th {
-    padding: 10px;
-    background-color: #F4F4F4;
-    font-weight: bold;
-    text-align: left;
-}
-
-.tabla-documentos tr:nth-child(even) {
-    background-color: #F9F9F9;
-}
-
-.tabla-documentos tr:hover {
-    background-color: #EEF1F6;
-}
-
-.tabla-documentos td {
-    word-break: break-word;
+.table td, .table th {
+    text-align: center;
     vertical-align: middle;
+    word-wrap: break-word;
+
 }
 
-/* Última fila redondeada */
-.tabla-documentos th:first-child {
-    border-top-left-radius: 10px;
+.table-responsive {
+    position: relative; /* Esto permite que el dropdown sea visible fuera del tbody */
+    overflow: visible; /* Evita que el contenido del dropdown sea recortado */
+    
 }
 
-.tabla-documentos th:last-child {
-    border-top-right-radius: 10px;
-}
 
-.tabla-documentos tr:last-child td:first-child {
-    border-bottom-left-radius: 10px;
-}
-
-.tabla-documentos tr:last-child td:last-child {
-    border-bottom-right-radius: 10px;
-}
-
-/* Dropdown de acciones */
 .dropdown {
     position: relative;
     display: inline-block;
+    
+    
+    
+    
+    
 }
 
 .dropdown button {
@@ -219,18 +199,20 @@ p {
 
 .dropdown-content {
     display: none;
-    position: absolute;
+    position: fixed;
     background-color: #fff;
     color: #333;
     text-align: left;
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1;
+    z-index: 9999 !important;
     border: 1px solid #ddd;
     border-radius: 5px;
     min-width: 150px;
     padding: 8px 0;
-    left: 100%; /* Posiciona a la derecha del botón */
-    top: -35px;
+    transform: translateY(0);
+    
+    
+    
 }
 
 .dropdown-content button {
@@ -250,6 +232,8 @@ p {
 .dropdown:hover .dropdown-content {
     display: block;
 }
+
+
 
 
 /* Pie de página */

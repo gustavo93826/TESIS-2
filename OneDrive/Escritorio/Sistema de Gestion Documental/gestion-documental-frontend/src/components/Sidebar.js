@@ -3,10 +3,14 @@ import * as FaIcons from 'react-icons/fa'
 import { GrOrganization } from "react-icons/gr";
 import { IoDocumentLock } from "react-icons/io5";
 import { GiArchiveRegister } from "react-icons/gi";
+import { FaInfo } from "react-icons/fa";
 const Sidebar = () =>{
     return (
        <div className="sidebar bg-light">
             <ul>
+                 <li>
+                    <NavLink to="/admin/informacion" exact className='text-dark rounded py-2 w-100 d-inline-block px-3' activeClassName="active"><FaInfo className='me-2'/>Pagina de Información</NavLink>
+                </li>
                 
                 <li>
                     <NavLink to="/admin/gestion-usuarios" exact className='text-dark rounded py-2 w-100 d-inline-block px-3' activeClassName="active"><FaIcons.FaUserCog className='me-2'/>Gestinar Usuarios</NavLink>

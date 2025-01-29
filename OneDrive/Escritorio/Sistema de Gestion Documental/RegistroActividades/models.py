@@ -2,6 +2,7 @@ from django.db import models
 from usuarios.models import Usuario
 from Documentos.models import Documento
 from Documentos.Carpetas import Carpeta
+from Clientes.models import Cliente
 
 class Registro(models.Model):
     usuario = models.ForeignKey(
@@ -30,6 +31,15 @@ class Registro(models.Model):
     )
     descripcion = models.TextField(verbose_name="Descripción de la actividad")
     fecha_hora = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y hora de la actividad")
+    
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='registros_cliente',
+        verbose_name="Cliente asociado"
+    )
 
     def __str__(self):
         usuario = self.usuario.nombre if self.usuario else "Usuario eliminado"

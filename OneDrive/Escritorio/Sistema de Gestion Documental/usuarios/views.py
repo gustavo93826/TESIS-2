@@ -13,7 +13,7 @@ import string
 # Endpoint para listar usuarios
 def lista_usuarios(request):
     if request.method == "GET":
-        usuarios = Usuario.objects.all().values("id", "nombre", "email", "rol", "fecha_creacion")
+        usuarios = Usuario.objects.exclude(id=100).values("id", "nombre", "email", "rol", "fecha_creacion").order_by("rol")
         return JsonResponse(list(usuarios), safe=False)
 
 # Endpoint para eliminar usuario
@@ -31,13 +31,13 @@ def enviar_correo_usuario(email, nombre, contrasena_aleatoria):
     Hola {nombre},
 
     Se ha creado un usuario para ti en el sistema. 
-    Tu correo registrado es: {email}.
-    Tu contraseña predeterminada es: {contrasena_aleatoria}.
+    Tu correo registrado es: {email}
+    Tu contraseña temporal es: {contrasena_aleatoria}
 
-    Por favor, cámbiala después de iniciar sesión.
+    Por favor, ingresa esta contraseña junto a su correo electronico registrado en el login para cámbiarla por una personal.
 
     Saludos,
-    El equipo del sistema
+    El equipo del sistema PDGR.
     """
     remitente = 'gustavoalbertohm@gmail.com'  
     destinatario = [email]
@@ -152,5 +152,5 @@ def lista_usuarios_opcion(request):
     if request.method == "GET":
         # Filtrar usuarios con los roles específicos
         roles_permitidos = [2, 3, 4]  # Abogado, Auxiliar Administrativo, Asistente
-        usuarios = Usuario.objects.filter(rol__in=roles_permitidos).values("id", "nombre", "email", "rol")
+        usuarios = Usuario.objects.filter(rol__in=roles_permitidos).exclude(id=100).values("id", "nombre", "email", "rol")
         return JsonResponse(list(usuarios), safe=False)

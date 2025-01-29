@@ -1,11 +1,44 @@
 import React, { useState } from 'react';
-import './CrearCarpeta.css'; // Archivo CSS para el diseño del modal
+import './CrearCarpeta.css'; 
 
-const CrearCarpeta = ({ rutaActual, userName, clientes, ubicacion,onClose, onUploadSuccess }) => {
+const CrearCarpeta = ({ rutaActual, userName, clientes, ubicacion, onClose, onUploadSuccess }) => {
   const [nombre, setNombre] = useState('');
   const [error, setError] = useState('');
   const [clienteSeleccionado, setClienteSeleccionado] = useState('');
-  
+  const [mensajeError, setMensajeError] = useState('');
+
+  const CARACTERES_NO_PERMITIDOS = /[\/\\<>:"|?*.']/;
+
+  const clientesAcceso = async (userId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/Permisos/cliente-archivos-ids/?user_id=${userId}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+      if (!response.ok) {
+        throw new Error('Error al verificar permisos');
+      }
+      const Acceso = await response.json();
+      return Acceso.cliente_archivos_ids;
+    } catch (error) {
+      console.error('Error al verificar permisos:', error);
+      alert('Hubo un problema al verificar tus permisos. Por favor, intenta nuevamente.');
+      return [];
+    }
+  };
+
+  const handleNombreChange = (e) => {
+    const nuevoNombre = e.target.value;
+    if (CARACTERES_NO_PERMITIDOS.test(nuevoNombre)) {
+      setError('El nombre de la carpeta contiene caracteres no permitidos.');
+    } else {
+      setError('');
+      setNombre(nuevoNombre);
+    }
+  };
 
   const handleCrearCarpeta = async () => {
     if (!nombre) {
@@ -16,16 +49,28 @@ const CrearCarpeta = ({ rutaActual, userName, clientes, ubicacion,onClose, onUpl
       setError('Debe seleccionar un cliente.');
       return;
     }
+    if (CARACTERES_NO_PERMITIDOS.test(nombre)) {
+      setError('El nombre de la carpeta contiene caracteres no permitidos.');
+      return;
+    }
+
+    const userId = sessionStorage.getItem('userId');
+    const clientesAsociados = await clientesAcceso(userId);
+
+    if (clientesAsociados.length > 0 && !clientesAsociados.includes(parseInt(clienteSeleccionado))) {
+      setMensajeError('No puedes elegir este cliente.');
+      return;
+    }
 
     setError(''); // Limpiar errores previos
+    setMensajeError(''); // Limpiar mensaje de error de cliente
 
     const formData = new FormData();
     formData.append('nombre', nombre);
     formData.append('cliente', clienteSeleccionado);
     formData.append('creado_por', userName);
     formData.append('ruta', rutaActual);
-    formData.append('carpeta_padre', ubicacion || 0); 
-
+    formData.append('carpeta_padre', ubicacion || 0);
 
     try {
       const response = await fetch('http://localhost:8000/api/Documentos/crear-carpeta/', {
@@ -34,7 +79,7 @@ const CrearCarpeta = ({ rutaActual, userName, clientes, ubicacion,onClose, onUpl
       });
 
       if (response.ok) {
-        alert('Carpeta con éxito.');
+        alert('Carpeta creada con éxito.');
         onUploadSuccess();
         onClose();
       } else {
@@ -50,14 +95,15 @@ const CrearCarpeta = ({ rutaActual, userName, clientes, ubicacion,onClose, onUpl
     <div className="modal-container">
       <div className="modal-content">
         <h2>Crear Carpeta</h2>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p className='error-message'>{error}</p>}
+        {mensajeError && <p className='error-message'>{mensajeError}</p>}
         <div className="form-group">
           <label htmlFor="nombre">Nombre de la carpeta</label>
           <input
             type="text"
             id="nombre"
             value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            onChange={handleNombreChange}
             placeholder="Ingrese el nombre de la carpeta"
           />
         </div>

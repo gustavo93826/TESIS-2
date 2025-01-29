@@ -60,6 +60,9 @@ body {
 
 .login-right h2 {
     margin-bottom: 20px;
+    text-align: center;
+    margin-left: 10px;
+    
 }
 
 .login-form {
@@ -117,6 +120,13 @@ body {
     margin-bottom: 10px;
     text-align: center;
 }
+
+.error-text {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
 
 /* Animación de deslizamiento */
 .slide-left {

@@ -24,7 +24,7 @@ def login(request):
                 return JsonResponse({'error': 'Se requieren email y contraseña'}, status=400)
             
             try:
-                user = Usuario.objects.get(email=email)
+                user = Usuario.objects.get(email__iexact=email)
             except Usuario.DoesNotExist:
                 return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
             
@@ -41,7 +41,7 @@ def login(request):
 
             # Verificar si la contraseña ingresada es la del campo password
             if user.password == password:
-                redirigir = '/admin' if user.rol == 1 else '/user'
+                redirigir = '/admin/informacion' if user.rol == 1 else '/user'
                 
                 try:
                     permisos_obj = PermisoGlobal.objects.get(usuario=user)
@@ -94,12 +94,15 @@ def Establecer_password(request):
 
             if not email or not temp_password or not new_password or not confirm_password:
                 return JsonResponse({'error': 'Todos los campos son obligatorios'}, status=400)
+            
+            if len(new_password) < 8:
+                return JsonResponse({'error': 'La contraseña debe tener al menos 8 caracteres'}, status=400)
 
             if new_password != confirm_password:
                 return JsonResponse({'error': 'Las contraseñas no coinciden'}, status=400)
 
             try:
-                user = Usuario.objects.get(email=email)
+                user = Usuario.objects.get(email__iexact=email)
             except Usuario.DoesNotExist:
                 return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
@@ -110,8 +113,38 @@ def Establecer_password(request):
             user.password = new_password
             user.temp_password = None  # Eliminamos la contraseña temporal
             user.save()
+            
+            try:
+                permisos_obj = PermisoGlobal.objects.get(usuario=user)
+                permisos = {
+                    "subir_archivo": permisos_obj.subir_archivo,
+                    "crear_carpeta": permisos_obj.crear_carpeta,
+                    "editar": permisos_obj.editar,
+                    "mover": permisos_obj.mover,
+                    "eliminar": permisos_obj.eliminar,
+                    "ver": permisos_obj.ver,
+                    "descargar": permisos_obj.descargar,
+                }
+            except PermisoGlobal.DoesNotExist:
+                permisos = {
+                    "subir_archivo": False,
+                    "crear_carpeta": False,
+                    "editar": False,
+                    "mover": False,
+                    "eliminar": False,
+                    "ver": False,
+                    "descargar": False,
+                }
 
-            return JsonResponse({'message': 'Contraseña establecida correctamente', 'redirect': '/user'}, status=200)
+            return JsonResponse({
+                'message': 'Contraseña establecida correctamente',
+                'redirect': '/user',
+                'id': user.id,
+                'nombre': user.nombre,
+                'permisos': permisos
+            }, status=200)
+
+            
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Formato de datos no válido'}, status=400)
         except Exception as e:
@@ -137,7 +170,7 @@ def Recuperar_password(request):
 
             try:
                 # Verificar si el correo existe en la base de datos
-                user = Usuario.objects.get(email=email)
+                user = Usuario.objects.get(email__iexact=email)
                 
 
                 # Generar un token y su expiración

@@ -36,7 +36,8 @@ const CrearUsuarioForm = ({ onClose, onUsuarioCreado }) => {
                 onUsuarioCreado(nuevoUsuario); // Notificar al componente principal
                 onClose(); // Cerrar el formulario
             } else {
-                setError("Error al crear el usuario.");
+                const errorData = await respuesta.json();
+                setError(errorData.error || "Error al crear el usuario.");
             }
         } catch (error) {
             console.error("Error al crear usuario:", error);

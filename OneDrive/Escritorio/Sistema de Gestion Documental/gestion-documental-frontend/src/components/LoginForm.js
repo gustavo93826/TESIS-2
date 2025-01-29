@@ -13,6 +13,27 @@ const LoginForm = () => {
     const [isTempPassword, setIsTempPassword] = useState(false);
     const [showRecover, setShowRecover] = useState(false);
     const navigate = useNavigate();
+    const [passwordError, setPasswordError] = useState('');
+
+    const handlePasswordChangeInput = (e) => {
+        const value = e.target.value;
+        setNewPassword(value);
+        if (value.length < 8) {
+            setPasswordError('La contraseña debe tener al menos 8 caracteres.');
+        } else {
+            setPasswordError('');
+        }
+    };
+    
+    const handleConfirmPasswordInput = (e) => {
+        const value = e.target.value;
+        setConfirmPassword(value);
+        if (value !== newPassword) {
+            setPasswordError('Las contraseñas no coinciden.');
+        } else if (newPassword.length >= 8) {
+            setPasswordError('');
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -59,6 +80,9 @@ const LoginForm = () => {
             const data = await response.json();
             if (response.ok) {
                 alert(data.message);
+                sessionStorage.setItem('userId', data.id);
+                sessionStorage.setItem('userName', data.nombre);
+                sessionStorage.setItem('userPermisos', JSON.stringify(data.permisos));
                 navigate(data.redirect); // Redirigir a la página del usuario
             } else {
                 alert(data.error);
@@ -90,7 +114,7 @@ const LoginForm = () => {
                                 type="password"
                                 placeholder="Introduce tu nueva contraseña"
                                 value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
+                                onChange={handlePasswordChangeInput}
                                 required
                             />
                         </div>
@@ -100,11 +124,12 @@ const LoginForm = () => {
                                 type="password"
                                 placeholder="Confirma tu nueva contraseña"
                                 value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                onChange={handleConfirmPasswordInput}
                                 required
                             />
                         </div>
-                        <button type="submit" className="btn-acceder">
+                        {passwordError && <p className="error-text">{passwordError}</p>} {/* Mensaje de error */}
+                        <button type="submit" className="btn-acceder" disabled={!!passwordError}>
                             Guardar Contraseña
                         </button>
                     </form>
